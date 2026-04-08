@@ -279,7 +279,7 @@ class PlayState extends MusicBeatState
 	private static var _lastLoadedModDirectory:String = '';
 	public static var nextReloadAll:Bool = false;
 
-	public var luaTouchPad:TouchPad;
+	//public var luaTouchPad:FunkinMobilePad;
 
 	override public function create()
 	{
@@ -631,10 +631,11 @@ class PlayState extends MusicBeatState
 			}
 		#end
 		
-		addMobileControls();
-		mobileControls.instance.visible = true;
-		mobileControls.onButtonDown.add(onButtonPress);
-		mobileControls.onButtonUp.add(onButtonRelease);
+		addHitbox();
+		addHitboxCamera();
+		mobileManager.hitbox.visible = true;
+		mobileManager.hitbox.onButtonDown.add(onButtonPress);
+		mobileManager.hitbox.onButtonUp.add(onButtonRelease);
 
 		if(eventNotes.length > 0)
 		{
@@ -2454,7 +2455,7 @@ class PlayState extends MusicBeatState
 	public var transitioning = false;
 	public function endSong()
 	{
-		mobileControls.instance.visible = #if !android touchPad.visible = #end false;
+		mobileManager.hitbox.visible = #if !android mobileManager.mobilePad.visible = #end false;
 		//Should kill you if you tried to cheat
 		if(!startingSong)
 		{
@@ -2879,26 +2880,28 @@ class PlayState extends MusicBeatState
 		return -1;
 	}
 
-	private function onButtonPress(button:TouchButton):Void
+	private function onButtonPress(button:MobileButton, ids:Array<String>, unique:Int):Void
 	{
-		if (button.IDs.filter(id -> id.toString().startsWith("EXTRA")).length > 0)
-			return;
+		if (ids.filter(id -> id.startsWith("NOTE")).length > 0)
+		{
+			var buttonCode:Int = (unique == -1 ? 0 : unique);
 
-		var buttonCode:Int = (button.IDs[0].toString().startsWith('NOTE')) ? button.IDs[0] : button.IDs[1];
-		callOnScripts('onButtonPressPre', [buttonCode]);
-		if (button.justPressed) keyPressed(buttonCode);
-		callOnScripts('onButtonPress', [buttonCode]);
+			callOnScripts('onButtonPressPre', [buttonCode]);
+			if (button.justPressed) keyPressed(buttonCode);
+			callOnScripts('onButtonPress', [buttonCode]);
+		}
 	}
 
-	private function onButtonRelease(button:TouchButton):Void
+	private function onButtonRelease(button:MobileButton, ids:Array<String>, unique:Int):Void
 	{
-		if (button.IDs.filter(id -> id.toString().startsWith("EXTRA")).length > 0)
-			return;
+		if (ids.filter(id -> id.startsWith("NOTE")).length > 0)
+		{
+			var buttonCode:Int = (unique == -1 ? 0 : unique);
 
-		var buttonCode:Int = (button.IDs[0].toString().startsWith('NOTE')) ? button.IDs[0] : button.IDs[1];
-		callOnScripts('onButtonReleasePre', [buttonCode]);
-		if(buttonCode > -1) keyReleased(buttonCode);
-		callOnScripts('onButtonRelease', [buttonCode]);
+			callOnScripts('onButtonReleasePre', [buttonCode]);
+			if(buttonCode > -1) keyReleased(buttonCode);
+			callOnScripts('onButtonRelease', [buttonCode]);
+		}
 	}
 
 	// Hold notes
@@ -3785,6 +3788,7 @@ class PlayState extends MusicBeatState
 		return false;
 	}
 
+	/*
 	public function makeLuaTouchPad(DPadMode:String, ActionMode:String) {
 		if(members.contains(luaTouchPad)) return;
 
@@ -3879,6 +3883,7 @@ class PlayState extends MusicBeatState
 		}
 		return false;
 	}
+	*/
 
 	function checkForResync()
 	{

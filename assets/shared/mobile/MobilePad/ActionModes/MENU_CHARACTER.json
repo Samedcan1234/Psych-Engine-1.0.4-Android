@@ -1,0 +1,40 @@
+{
+	"buttons": [
+		{
+			"button": "buttonC",
+			"buttonIDs": [
+				"C"
+			],
+			"graphic": "c",
+			"color": "0x44FF00",
+			"position": [
+				908,
+				0
+			]
+		},
+		{
+			"button": "buttonB",
+			"buttonIDs": [
+				"B"
+			],
+			"graphic": "b",
+			"color": "0xFFCB00",
+			"position": [
+				1032,
+				0
+			]
+		},
+		{
+			"button": "buttonA",
+			"buttonIDs": [
+				"A"
+			],
+			"graphic": "a",
+			"color": "0xFF0000",
+			"position": [
+				1156,
+				0
+			]
+		}
+	]
+}

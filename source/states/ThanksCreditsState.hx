@@ -141,11 +141,8 @@ class ThanksCreditsState extends MusicBeatState
 	{
 		creditsData.push(['SametGkTe', 'gkte', Language.getPhrase('credits_role_samet', 'Header Of And Creator Of Psych Engine Ultra'), 'https://tiktok.com/@gktegameplay', 'FFE7C0']);
 		creditsData.push(['Nexus', 'nex', Language.getPhrase('credits_role_nexus', 'Translator Of Psych Engine Ultra'), 'https://tiktok.com/@skynexus.0.03', 'FFE7C0']);
-		creditsData.push(['ArkoseLabs', 'arkoselabs', Language.getPhrase('credits_role_arkose', 'Turkish Alphabet İmages'), 'https://tiktok.com/@skynexus.0.03', 'FFE7C0']);
+		creditsData.push(['ArkoseLabs', 'arkoselabs', Language.getPhrase('credits_role_arkose', 'Mobile Porter & Co-Owner of Psych Ultra'), 'https://youtube.com/@arkoselabsofficial', 'FFE7C0']);
 		creditsData.push(['emi3', 'puta', Language.getPhrase('credits_role_emi3', 'Spanish Ratings, İmages etc.'), 'https://gamebanana.com/members/1709917', '6FA8DC']);
-		creditsData.push(['HomuHomu833', 'homura', Language.getPhrase('credits_role_homu', 'Head Porter of Psych Engine and Author of linc_luajit-rewriten'), 'https://youtube.com/@HomuHomu833', 'FFE7C0']);
-		creditsData.push(['Karim Akra', 'karim', Language.getPhrase('credits_role_karim', 'Second Porter of Psych Engine'), 'https://youtube.com/@Karim0690', 'FFB4F0']);
-		creditsData.push(['Moxie', 'moxie', Language.getPhrase('credits_role_moxie', 'Helper of Psych Engine Mobile'), 'https://twitter.com/moxie_specalist', 'F592C4']);
 		creditsData.push(['Shadow Mario', 'shadowmario', Language.getPhrase('credits_role_shadow', 'Main Programmer and Head of Psych Engine'), 'https://ko-fi.com/shadowmario', '444444']);
 		creditsData.push(['Riveren', 'riveren', Language.getPhrase('credits_role_riveren', 'Main Artist/Animator of Psych Engine'), 'https://x.com/riverennn', '14967B']);
 		creditsData.push(['bb-panzu', 'bb', Language.getPhrase('credits_role_bb', 'Ex-Programmer of Psych Engine'), 'https://x.com/bbsub3', '3E813A']);

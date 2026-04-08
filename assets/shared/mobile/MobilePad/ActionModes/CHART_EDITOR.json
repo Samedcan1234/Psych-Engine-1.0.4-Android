@@ -1,0 +1,68 @@
+{
+	"buttons": [
+		{
+			"button": "buttonV",
+			"buttonIDs": ["V"],
+			"graphic": "v",
+			"color": "0x49A9B2",
+			"scale": 0.9,
+			"position": [824, 492]
+		},
+		{
+			"button": "buttonD",
+			"buttonIDs": ["D"],
+			"graphic": "d",
+			"color": "0x0078FF",
+			"scale": 0.9,
+			"position": [824, 606]
+		},
+		{
+			"button": "buttonX",
+			"buttonIDs": ["X"],
+			"graphic": "x",
+			"color": "0x99062D",
+			"scale": 0.9,
+			"position": [1052, 492]
+		},
+		{
+			"button": "buttonC",
+			"buttonIDs": ["C"],
+			"graphic": "c",
+			"color": "0x44FF00",
+			"scale": 0.9,
+			"position": [938, 606]
+		},
+		{
+			"button": "buttonB",
+			"buttonIDs": ["B"],
+			"graphic": "b",
+			"color": "0xFFCB00",
+			"scale": 0.9,
+			"position": [1052, 606]
+		},
+		{
+			"button": "buttonZ",
+			"buttonIDs": ["Z"],
+			"graphic": "z",
+			"color": "0xCCB98E",
+			"scale": 0.9,
+			"position": [1166, 492]
+		},
+		{
+			"button": "buttonA",
+			"buttonIDs": ["A"],
+			"graphic": "a",
+			"color": "0xFF0000",
+			"scale": 0.9,
+			"position": [1166, 606]
+		},
+		{
+			"button": "buttonG",
+			"buttonIDs": ["G"],
+			"graphic": "g",
+			"color": "0xFF009D",
+			"scale": 0.9,
+			"position": [938, 492]
+		}
+	]
+}

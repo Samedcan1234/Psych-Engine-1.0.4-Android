@@ -85,7 +85,7 @@ class Controls
 	//Gamepad, Keyboard & Mobile stuff
 	public var keyboardBinds:Map<String, Array<FlxKey>>;
 	public var gamepadBinds:Map<String, Array<FlxGamepadInputID>>;
-	public var mobileBinds:Map<String, Array<MobileInputID>>;
+	public var mobileBinds:Map<String, Array<String>>;
 	public function justPressed(key:String)
 	{
 		var result:Bool = (FlxG.keys.anyJustPressed(keyboardBinds[key]) == true);
@@ -168,58 +168,58 @@ class Controls
 
 	public var isInSubstate:Bool = false; // don't worry about this it becomes true and false on it's own in MusicBeatSubstate
 	public var requestedInstance(get, default):Dynamic; // is set to MusicBeatState or MusicBeatSubstate when the constructor is called
-	public var requestedMobileC(get, default):IMobileControls; // for PlayState and EditorPlayState (hitbox and touchPad)
+	public var requestedMobileC(get, default):FunkinHitbox; // for PlayState and EditorPlayState
 	public var mobileC(get, never):Bool;
 
-	private function touchPadPressed(keys:Array<MobileInputID>):Bool
+	private function touchPadPressed(keys:Array<String>):Bool
 	{
-		if (keys != null && requestedInstance.touchPad != null)
-			if (requestedInstance.touchPad.anyPressed(keys) == true)
+		if (keys != null && requestedInstance.mobileManager.mobilePad != null)
+			if (requestedInstance.mobileManager.mobilePad.pressed(keys) == true)
 				return true;
 
 		return false;
 	}
 
-	private function touchPadJustPressed(keys:Array<MobileInputID>):Bool
+	private function touchPadJustPressed(keys:Array<String>):Bool
 	{
-		if (keys != null && requestedInstance.touchPad != null)
-			if (requestedInstance.touchPad.anyJustPressed(keys) == true)
+		if (keys != null && requestedInstance.mobileManager.mobilePad != null)
+			if (requestedInstance.mobileManager.mobilePad.justPressed(keys) == true)
 				return true;
 
 		return false;
 	}
 
-	private function touchPadJustReleased(keys:Array<MobileInputID>):Bool
+	private function touchPadJustReleased(keys:Array<String>):Bool
 	{
-		if (keys != null && requestedInstance.touchPad != null)
-			if (requestedInstance.touchPad.anyJustReleased(keys) == true)
+		if (keys != null && requestedInstance.mobileManager.mobilePad != null)
+			if (requestedInstance.mobileManager.mobilePad.justReleased(keys) == true)
 				return true;
 
 		return false;
 	}
 
-	private function mobileCPressed(keys:Array<MobileInputID>):Bool
+	private function mobileCPressed(keys:Array<String>):Bool
 	{
 		if (keys != null && requestedMobileC != null)
-			if (requestedMobileC.instance.anyPressed(keys))
+			if (requestedMobileC.pressed(keys))
 				return true;
 
 		return false;
 	}
 
-	private function mobileCJustPressed(keys:Array<MobileInputID>):Bool
+	private function mobileCJustPressed(keys:Array<String>):Bool
 	{
 		if (keys != null && requestedMobileC != null)
-			if (requestedMobileC.instance.anyJustPressed(keys))
+			if (requestedMobileC.justPressed(keys))
 				return true;
 
 		return false;
 	}
 
-	private function mobileCJustReleased(keys:Array<MobileInputID>):Bool
+	private function mobileCJustReleased(keys:Array<String>):Bool
 	{
 		if (keys != null && requestedMobileC != null)
-			if (requestedMobileC.instance.anyJustReleased(keys))
+			if (requestedMobileC.justReleased(keys))
 				return true;
 
 		return false;
@@ -235,9 +235,9 @@ class Controls
 	}
 
 	@:noCompletion
-	private function get_requestedMobileC():IMobileControls
+	private function get_requestedMobileC():FunkinHitbox
 	{
-		return requestedInstance.mobileControls;
+		return requestedInstance.mobileManager.hitbox;
 	}
 
 	@:noCompletion

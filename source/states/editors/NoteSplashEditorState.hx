@@ -543,11 +543,11 @@ class NoteSplashEditorState extends MusicBeatState
             var changedOffset = false;
             if (controls.mobileC || FlxG.keys.pressed.CONTROL && config.animations.get(curAnim) != null)
             {
-                if (touchPad.buttonC.justPressed || FlxG.keys.justPressed.C)
+                if (mobilePadJustPressed("C") || FlxG.keys.justPressed.C)
                 {
                     copiedOffset = config.animations.get(curAnim).offsets.copy();
                 }
-                else if (touchPad.buttonV.justPressed || FlxG.keys.justPressed.V)
+                else if (mobilePadJustPressed("V") || FlxG.keys.justPressed.V)
                 {
                     var conf = config.animations.get(curAnim);
                     conf.offsets = copiedOffset.copy(); 
@@ -563,9 +563,9 @@ class NoteSplashEditorState extends MusicBeatState
                 }
             }
 
-            var multiplier:Int = (touchPad.buttonZ.pressed || FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER)) ? 10 : 1;
+            var multiplier:Int = (mobilePadPressed("Z") || FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER)) ? 10 : 1;
 
-            var moveKeysP = [touchPad.buttonLeft.justPressed || FlxG.keys.justPressed.LEFT,touchPad.buttonRight.justPressed || FlxG.keys.justPressed.RIGHT, touchPad.buttonUp.justPressed || FlxG.keys.justPressed.UP, touchPad.buttonDown.justPressed || FlxG.keys.justPressed.DOWN];
+            var moveKeysP = [mobilePadJustPressed("LEFT") || FlxG.keys.justPressed.LEFT,mobilePadJustPressed("RIGHT") || FlxG.keys.justPressed.RIGHT, mobilePadJustPressed("UP") || FlxG.keys.justPressed.UP, mobilePadJustPressed("DOWN") || FlxG.keys.justPressed.DOWN];
             if(moveKeysP.contains(true))
             {
                 config.animations[curAnim].offsets[0] += ((moveKeysP[0] ? 1 : 0) - (moveKeysP[1] ? 1 : 0)) * multiplier;
@@ -573,7 +573,7 @@ class NoteSplashEditorState extends MusicBeatState
                 changedOffset = true;
             }
     
-            var moveKeys = [touchPad.buttonLeft.pressed || FlxG.keys.pressed.LEFT, touchPad.buttonRight.pressed || FlxG.keys.pressed.RIGHT, touchPad.buttonUp.pressed || FlxG.keys.pressed.UP, touchPad.buttonDown.pressed || FlxG.keys.pressed.DOWN];
+            var moveKeys = [mobilePadPressed("LEFT") || FlxG.keys.pressed.LEFT, mobilePadPressed("RIGHT") || FlxG.keys.pressed.RIGHT, mobilePadPressed("UP") || FlxG.keys.pressed.UP, mobilePadPressed("DOWN") || FlxG.keys.pressed.DOWN];
             if(moveKeys.contains(true))
             {
                 holdingArrowsTime += elapsed;
@@ -598,7 +598,7 @@ class NoteSplashEditorState extends MusicBeatState
         {
             if (controls.BACK)
                 MusicBeatState.switchState(new MasterEditorMenu());
-            if (touchPad.buttonF.justPressed || FlxG.keys.justPressed.F1)
+            if (mobilePadJustPressed("F") || FlxG.keys.justPressed.F1)
             {
                 removeTouchPad();
                 openSubState(new NoteSplashEditorHelpSubState());
@@ -1009,7 +1009,7 @@ class NoteSplashEditorHelpSubState extends MusicBeatSubstate
         add(noteDataText);
 
 		addTouchPad('NONE', 'B');
-        touchPad.y -= 205;
+        mobileManager.mobilePad.y -= 205;
     }
 
     override function update(elapsed:Float)

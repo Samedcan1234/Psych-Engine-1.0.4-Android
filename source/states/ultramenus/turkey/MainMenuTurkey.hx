@@ -336,7 +336,7 @@ class MainMenuTurkey extends MusicBeatState
 
 			if (controls.ACCEPT) selectEntry();
 
-			else if (controls.justPressed('debug_1') || touchPad.buttonE.justPressed)
+			else if (controls.justPressed('debug_1') || mobilePadJustPressed("E"))
 			{
 				selectedSomethin = true;
 				MusicBeatState.switchState(new MasterEditorMenu());

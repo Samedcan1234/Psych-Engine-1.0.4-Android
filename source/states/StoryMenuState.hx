@@ -267,13 +267,13 @@ class StoryMenuState extends MusicBeatState
 			else if (changeDiff)
 				changeDifficulty();
 
-			if(FlxG.keys.justPressed.CONTROL || touchPad.buttonX.justPressed)
+			if(FlxG.keys.justPressed.CONTROL || mobilePadJustPressed("X"))
 			{
 				persistentUpdate = false;
 				openSubState(new GameplayChangersSubstate());
 				removeTouchPad();
 			}
-			else if(controls.RESET || touchPad.buttonY.justPressed)
+			else if(controls.RESET || mobilePadJustPressed("Y"))
 			{
 				persistentUpdate = false;
 				openSubState(new ResetScoreSubState('', curDifficulty, '', curWeek));

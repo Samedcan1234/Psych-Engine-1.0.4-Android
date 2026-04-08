@@ -687,7 +687,7 @@ class AchievementsMenuState extends MusicBeatState
 			if (controls.UI_DOWN_P)        changeSelection(1);
 			if (FlxG.mouse.wheel != 0)     changeSelection(-FlxG.mouse.wheel);
 
-			if (MusicBeatState.getState().touchPad.buttonC.justPressed ||
+			if (MusicBeatState.getState().mobilePadJustPressed("C") ||
 				controls.RESET && (options[curSelected].unlocked || options[curSelected].curProgress > 0))
 			{
 				removeTouchPad();

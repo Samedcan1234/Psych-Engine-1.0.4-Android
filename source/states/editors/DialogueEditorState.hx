@@ -311,10 +311,10 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 		if(PsychUIInputText.focusOn == null)
 		{
 			ClientPrefs.toggleVolumeKeys(true);
-			if(FlxG.keys.justPressed.SPACE || touchPad.buttonY.justPressed) {
+			if(FlxG.keys.justPressed.SPACE || mobilePadJustPressed("Y")) {
 				reloadText(false);
 			}
-			if(FlxG.keys.justPressed.ESCAPE || touchPad.buttonB.justPressed) {
+			if(FlxG.keys.justPressed.ESCAPE || mobilePadJustPressed("B")) {
 				if(!unsavedProgress)
 				{
 					MusicBeatState.switchState(new states.editors.MasterEditorMenu());
@@ -325,8 +325,8 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 				return;
 			}
 			var negaMult:Array<Int> = [1, -1];
-			var controlAnim:Array<Bool> = [FlxG.keys.justPressed.W || touchPad.buttonUp.justPressed, FlxG.keys.justPressed.S || touchPad.buttonDown.justPressed];
-			var controlText:Array<Bool> = [FlxG.keys.justPressed.D || touchPad.buttonRight.justPressed, FlxG.keys.justPressed.A || touchPad.buttonLeft.justPressed];
+			var controlAnim:Array<Bool> = [FlxG.keys.justPressed.W || mobilePadJustPressed("UP"), FlxG.keys.justPressed.S || mobilePadJustPressed("DOWN")];
+			var controlText:Array<Bool> = [FlxG.keys.justPressed.D || mobilePadJustPressed("RIGHT"), FlxG.keys.justPressed.A || mobilePadJustPressed("LEFT")];
 			for (i in 0...controlAnim.length) {
 				if(controlAnim[i] && character.jsonFile.animations.length > 0) {
 					curAnim -= negaMult[i];
@@ -345,7 +345,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 				}
 			}
 
-			if(FlxG.keys.justPressed.O || touchPad.buttonA.justPressed ) {
+			if(FlxG.keys.justPressed.O || mobilePadJustPressed("A") ) {
 				dialogueFile.dialogue.remove(dialogueFile.dialogue[curSelected]);
 				if(dialogueFile.dialogue.length < 1) //You deleted everything, dumbo!
 				{
@@ -354,7 +354,7 @@ class DialogueEditorState extends MusicBeatState implements PsychUIEventHandler.
 					];
 				}
 				changeText();
-			} else if(FlxG.keys.justPressed.P || touchPad.buttonX.justPressed) {
+			} else if(FlxG.keys.justPressed.P || mobilePadJustPressed("X")) {
 				dialogueFile.dialogue.insert(curSelected + 1, copyDefaultLine());
 				changeText(1);
 			}

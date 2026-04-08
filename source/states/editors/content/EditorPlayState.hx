@@ -140,10 +140,11 @@ class EditorPlayState extends MusicBeatSubstate
 		add(tipText);
 		FlxG.mouse.visible = false;
 		
-		addMobileControls();
-		mobileControls.instance.visible = true;
-		mobileControls.onButtonDown.add(onButtonPress);
-		mobileControls.onButtonUp.add(onButtonRelease);
+		addHitbox();
+		addHitboxCamera();
+		mobileManager.hitbox.visible = true;
+		mobileManager.hitbox.onButtonDown.add(onButtonPress);
+		mobileManager.hitbox.onButtonUp.add(onButtonRelease);
 
 		generateSong();
 		_noteList = null;
@@ -170,7 +171,7 @@ class EditorPlayState extends MusicBeatSubstate
 
 	override function update(elapsed:Float)
 	{
-		if(#if android FlxG.android.justReleased.BACK #else touchPad.buttonP.justPressed #end || controls.BACK || FlxG.keys.justPressed.ESCAPE || FlxG.keys.justPressed.F12)
+		if(#if android FlxG.android.justReleased.BACK #else mobilePadJustPressed("P") #end || controls.BACK || FlxG.keys.justPressed.ESCAPE || FlxG.keys.justPressed.F12)
 		{
 			endSong();
 			super.update(elapsed);
@@ -513,7 +514,7 @@ class EditorPlayState extends MusicBeatSubstate
 
 		Conductor.songPosition = FlxG.sound.music.time = vocals.time = opponentVocals.time = startPos - Conductor.offset;
 
-		mobileControls.instance.visible = false;
+		mobileManager.hitbox.visible = false;
 
 		close();
 	}
@@ -752,22 +753,24 @@ class EditorPlayState extends MusicBeatSubstate
 		}
 	}
 
-	private function onButtonPress(button:TouchButton):Void
+	private function onButtonPress(button:MobileButton, ids:Array<String>, unique:Int):Void
 	{
-		if (button.IDs.filter(id -> id.toString().startsWith("EXTRA")).length > 0)
-			return;
+		if (ids.filter(id -> id.startsWith("NOTE")).length > 0)
+		{
+			var buttonCode:Int = (unique == -1 ? 0 : unique);
 
-		var buttonCode:Int = (button.IDs[0].toString().startsWith('NOTE')) ? button.IDs[0] : button.IDs[1];
-		if (button.justPressed) keyPressed(buttonCode);
+			if (button.justPressed) keyPressed(buttonCode);
+		}
 	}
 
-	private function onButtonRelease(button:TouchButton):Void
+	private function onButtonRelease(button:MobileButton, ids:Array<String>, unique:Int):Void
 	{
-		if (button.IDs.filter(id -> id.toString().startsWith("EXTRA")).length > 0)
-			return;
+		if (ids.filter(id -> id.startsWith("NOTE")).length > 0)
+		{
+			var buttonCode:Int = (unique == -1 ? 0 : unique);
 
-		var buttonCode:Int = (button.IDs[0].toString().startsWith('NOTE')) ? button.IDs[0] : button.IDs[1];
-		if(buttonCode > -1) keyReleased(buttonCode);
+			if(buttonCode > -1) keyReleased(buttonCode);
+		}
 	}
 	
 	// Hold notes

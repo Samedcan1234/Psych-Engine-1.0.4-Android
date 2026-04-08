@@ -258,11 +258,11 @@ class ModsMenuState extends MusicBeatState
 		addTouchPad('UP_DOWN', 'B');
 		if (controls.mobileC)
 		{
-			touchPad.alpha = 0.35;
+			mobileManager.mobilePad.alpha = 0.35;
 			// Touchpad'i sol panel (vitrin) alanında ortala, alta yapıştır
 			var padW:Float = FlxG.width - RIGHT_W;
-			touchPad.x = (padW - touchPad.width) / 2;
-			touchPad.y = FlxG.height - touchPad.height - 4;
+			mobileManager.mobilePad.x = (padW - mobileManager.mobilePad.width) / 2;
+			mobileManager.mobilePad.y = FlxG.height - mobileManager.mobilePad.height - 4;
 		}
 
 		super.create();
@@ -1396,15 +1396,15 @@ class MenuButton extends FlxSpriteGroup
 		if (Controls.instance.mobileC)
 		{
 			if (!ignoreCheck)
-				onFocus = TouchUtil.overlaps(this);
+				onFocus = ScreenUtil.touch.overlaps(this);
 
-			if (onFocus && TouchUtil.justReleased)
+			if (onFocus && ScreenUtil.touch.justReleased)
 				onFocus = false;
 
-			if (onFocus && onClick != null && TouchUtil.justPressed)
+			if (onFocus && onClick != null && ScreenUtil.touch.justPressed)
 				onClick();
 
-			if (_needACheck) { _needACheck = false; setButtonVisibility(TouchUtil.overlaps(this)); }
+			if (_needACheck) { _needACheck = false; setButtonVisibility(ScreenUtil.touch.overlaps(this)); }
 		}
 		// ── PC/Konsol: mouse ──────────────────────────────────
 		else

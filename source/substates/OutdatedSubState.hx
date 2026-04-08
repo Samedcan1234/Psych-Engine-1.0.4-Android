@@ -44,11 +44,11 @@ class OutdatedSubState extends MusicBeatSubstate
 		add(warnText);
 
 		addTouchPad("NONE", "A_B");
-		touchPad.alpha = 0;
+		mobileManager.mobilePad.alpha = 0;
 
 		FlxTween.tween(bg, { alpha: 0.8 }, 0.6, { ease: FlxEase.sineIn });
 		FlxTween.tween(warnText, { alpha: 1.0 }, 0.6, { ease: FlxEase.sineIn });
-		FlxTween.tween(touchPad, { alpha: 1.0 }, 0.6, { ease: FlxEase.sineIn });
+		FlxTween.tween(mobileManager.mobilePad, { alpha: 1.0 }, 0.6, { ease: FlxEase.sineIn });
 	}
 
 	override function update(elapsed:Float)
@@ -65,7 +65,7 @@ class OutdatedSubState extends MusicBeatSubstate
 			{
 				FlxG.sound.play(Paths.sound('cancelMenu'));
 				FlxTween.tween(bg, { alpha: 0.0 }, 0.9, { ease: FlxEase.sineOut });
-				FlxTween.tween(touchPad, { alpha: 0.0 }, 1, { ease: FlxEase.sineOut });
+				FlxTween.tween(mobileManager.mobilePad, { alpha: 0.0 }, 1, { ease: FlxEase.sineOut });
 				FlxTween.tween(warnText, {alpha: 0}, 1, {
 					ease: FlxEase.sineOut,
 					onComplete: function (twn:FlxTween) {

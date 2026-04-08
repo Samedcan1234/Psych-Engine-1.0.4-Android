@@ -422,7 +422,7 @@ class CreditsState extends MusicBeatState
 		}
 		#end
 
-		if (FlxG.keys.justPressed.CONTROL || touchPad.buttonC.justPressed)
+		if (FlxG.keys.justPressed.CONTROL || mobilePadJustPressed("C"))
 		{
 			FlxG.sound.play(Paths.sound('confirmMenu'));
 			MusicBeatState.switchState(new ThanksCreditsState());
@@ -956,17 +956,11 @@ class CreditsState extends MusicBeatState
 		creditsStuff = [
 			[Language.getPhrase('credits_sec_peu', 'Psych Engine Ultra')],
 			['SametGkTe',       'gkte',          Language.getPhrase('credits_role_samet',   'Header Of And Creator Of Psych Engine Ultra'),                       'https://tiktok.com/@gktegameplay',           'FFE7C0'],
+			['ArkoseLabs', 'arkoselabs', Language.getPhrase('credits_role_arkose', 'Mobile Porter & Co-Owner of Psych Ultra'), 'https://youtube.com/@arkoselabsofficial', 'FFE7C0'],
 			['Nexus',           'nex',            Language.getPhrase('credits_role_nexus',   'Translator Of Psych Engine Ultra'),                                  'https://tiktok.com/@skynexus.0.03',          'FFE7C0'],
 			[''],
-			[Language.getPhrase('otherteam_peu', 'Other')],
-			['ArkoseLabs',           'arkoselabs',            Language.getPhrase('credits_role_arkose',   'Turkish Alphabet İmages'),                              'https://tiktok.com/@skynexus.0.03',          'FFE7C0'],
 			[Language.getPhrase('spanishteam_peu', 'Spanish')],
 			['emi3',           'puta',            Language.getPhrase('credits_role_emi3',   'Spanish Ratings, İmages etc.'),                              'https://gamebanana.com/members/1709917',          '6FA8DC'],
-			[''],
-			[Language.getPhrase('credits_sec_mobile', 'Mobile Porting Team')],
-			['HomuHomu833',     'homura',         Language.getPhrase('credits_role_homu',    'Head Porter of Psych Engine and Author of linc_luajit-rewriten'),    'https://youtube.com/@HomuHomu833',           'FFE7C0'],
-			['Karim Akra',      'karim',          Language.getPhrase('credits_role_karim',   'Second Porter of Psych Engine'),                                     'https://youtube.com/@Karim0690',             'FFB4F0'],
-			['Moxie',           'moxie',          Language.getPhrase('credits_role_moxie',   'Helper of Psych Engine Mobile'),                                     'https://twitter.com/moxie_specalist',        'F592C4'],
 			[''],
 			[Language.getPhrase('credits_sec_psychteam', 'Psych Engine Team')],
 			['Shadow Mario',    'shadowmario',    Language.getPhrase('credits_role_shadow',  'Main Programmer and Head of Psych Engine'),                          'https://ko-fi.com/shadowmario',              '444444'],

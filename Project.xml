@@ -69,6 +69,13 @@
 	<set name="BUILD_DIR" value="export/release" unless="debug" />
 	<set name="BUILD_DIR" value="export/32bit" if="32bits" />
 
+	<!-- For Termux -->
+	<section if="termux">
+		<set name="BUILD_DIR" value="/root/PsychUltra/export/debug" if="debug" />
+		<set name="BUILD_DIR" value="/root/PsychUltra/export/release" unless="debug" />
+		<set name="BUILD_DIR" value="/root/PsychUltra/export/32bit" if="32bits" />
+	</section>
+
 	<classpath name="source" />
 
 	<!-- __________________________ Game Assets & Etc. __________________________ -->
@@ -118,6 +125,8 @@
 	<!-- _______________________________ Libraries ______________________________ -->
 
 	<haxelib name="flixel"/>
+	<haxelib name="mobile-controls"/>
+	<haxedef name="mobile_controls_file_support"/>
 	<haxelib name="flixel-addons" version="3.3.2"/>
 	<haxelib name="tjson" version="1.4.0"/>
 
@@ -210,14 +219,17 @@
 	<config:ios category_type="public.app-category.music-games" />
 	<config:mac category_type="public.app-category.music-games" />
 
-	<!-- Allow Access to Engine Files in iOS -->
-	<haxedef name="SHARE_MOBILE_FILES" if="ios" />
+	<!-- Allow Access to Engine Files in iOS (doesn't work on ArkoseLabs's lime)-->
+	<!-- <haxedef name="SHARE_MOBILE_FILES" if="ios" /> -->
 
 	<!--Macro fixes-->
 	<haxeflag name="--macro" value="allowPackage('flash')" />
 	<haxeflag name="--macro" value="include('my.pack')" />
 
 	<haxedef name="hscriptPos" if="HSCRIPT_ALLOWED" />
+	<haxedef name="DISABLE_AUDIO_FOCUS" if="android" /> <!-- Disable the fucking audio focus -->
+	<haxedef name="lime_use_old_deltatime" />
+	<haxedef name="lime_disable_motion_sensors" />
 
 	<!-- _________________________________ Custom _______________________________ -->
 

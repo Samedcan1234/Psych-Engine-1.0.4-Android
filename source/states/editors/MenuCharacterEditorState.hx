@@ -218,7 +218,7 @@ class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHan
 		if(PsychUIInputText.focusOn == null)
 		{
 			ClientPrefs.toggleVolumeKeys(true);
-			if(FlxG.keys.justPressed.ESCAPE || touchPad.buttonB.justPressed) {
+			if(FlxG.keys.justPressed.ESCAPE || mobilePadJustPressed("B")) {
 				if(!unsavedProgress)
 				{
 					MusicBeatState.switchState(new states.editors.MasterEditorMenu());
@@ -228,26 +228,26 @@ class MenuCharacterEditorState extends MusicBeatState implements PsychUIEventHan
 			}
 
 			var shiftMult:Int = 1;
-			if(FlxG.keys.pressed.SHIFT || touchPad.buttonA.pressed) shiftMult = 10;
+			if(FlxG.keys.pressed.SHIFT || mobilePadPressed("A")) shiftMult = 10;
 
-			if(FlxG.keys.justPressed.LEFT || touchPad.buttonLeft.justPressed) {
+			if(FlxG.keys.justPressed.LEFT || mobilePadJustPressed("LEFT")) {
 				characterFile.position[0] += shiftMult;
 				updateOffset();
 			}
-			if(FlxG.keys.justPressed.RIGHT || touchPad.buttonRight.justPressed) {
+			if(FlxG.keys.justPressed.RIGHT || mobilePadJustPressed("RIGHT")) {
 				characterFile.position[0] -= shiftMult;
 				updateOffset();
 			}
-			if(FlxG.keys.justPressed.UP || touchPad.buttonUp.justPressed) {
+			if(FlxG.keys.justPressed.UP || mobilePadJustPressed("UP")) {
 				characterFile.position[1] += shiftMult;
 				updateOffset();
 			}
-			if(FlxG.keys.justPressed.DOWN || touchPad.buttonDown.justPressed) {
+			if(FlxG.keys.justPressed.DOWN || mobilePadJustPressed("DOWN")) {
 				characterFile.position[1] -= shiftMult;
 				updateOffset();
 			}
 
-			if((FlxG.keys.justPressed.SPACE || touchPad.buttonC.justPressed) && characterTypeRadio.checked == 1) {
+			if((FlxG.keys.justPressed.SPACE || mobilePadJustPressed("C")) && characterTypeRadio.checked == 1) {
 				grpWeekCharacters.members[characterTypeRadio.checked].animation.play('confirm', true);
 			}
 		}

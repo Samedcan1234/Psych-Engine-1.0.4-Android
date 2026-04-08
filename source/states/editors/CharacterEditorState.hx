@@ -903,7 +903,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		var shiftMult:Float = 1;
 		var ctrlMult:Float = 1;
 		var shiftMultBig:Float = 1;
-		if(FlxG.keys.pressed.SHIFT || touchPad.buttonC.pressed)
+		if(FlxG.keys.pressed.SHIFT || mobilePadPressed("C"))
 		{
 			shiftMult = 4;
 			shiftMultBig = 10;
@@ -917,12 +917,12 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		if (FlxG.keys.pressed.I) FlxG.camera.scroll.y -= elapsed * 500 * shiftMult * ctrlMult;
 
 		var lastZoom = FlxG.camera.zoom;
-		if(FlxG.keys.justPressed.R && !FlxG.keys.pressed.CONTROL || touchPad.buttonZ.justPressed) FlxG.camera.zoom = 1;
-		else if ((FlxG.keys.pressed.E || touchPad.buttonX.pressed) && FlxG.camera.zoom < 3) {
+		if(FlxG.keys.justPressed.R && !FlxG.keys.pressed.CONTROL || mobilePadJustPressed("Z")) FlxG.camera.zoom = 1;
+		else if ((FlxG.keys.pressed.E || mobilePadPressed("X")) && FlxG.camera.zoom < 3) {
 			FlxG.camera.zoom += elapsed * FlxG.camera.zoom * shiftMult * ctrlMult;
 			if(FlxG.camera.zoom > 3) FlxG.camera.zoom = 3;
 		}
-		else if ((FlxG.keys.pressed.Q || touchPad.buttonY.pressed) && FlxG.camera.zoom > 0.1) {
+		else if ((FlxG.keys.pressed.Q || mobilePadPressed("Y")) && FlxG.camera.zoom > 0.1) {
 			FlxG.camera.zoom -= elapsed * FlxG.camera.zoom * shiftMult * ctrlMult;
 			if(FlxG.camera.zoom < 0.1) FlxG.camera.zoom = 0.1;
 		}
@@ -933,8 +933,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		var changedAnim:Bool = false;
 		if(anims.length > 1)
 		{
-			if((FlxG.keys.justPressed.W || touchPad.buttonV.justPressed) && (changedAnim = true)) curAnim--;
-			else if((FlxG.keys.justPressed.S || touchPad.buttonD.justPressed) && (changedAnim = true)) curAnim++;
+			if((FlxG.keys.justPressed.W || mobilePadJustPressed("V")) && (changedAnim = true)) curAnim--;
+			else if((FlxG.keys.justPressed.S || mobilePadJustPressed("D")) && (changedAnim = true)) curAnim++;
 
 			if(changedAnim)
 			{
@@ -946,8 +946,8 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		}
 
 		var changedOffset = false;
-		var moveKeysP = (controls.mobileC) ? [touchPad.buttonLeft.justPressed, touchPad.buttonRight.justPressed, touchPad.buttonUp.justPressed, touchPad.buttonDown.justPressed] : [FlxG.keys.justPressed.LEFT, FlxG.keys.justPressed.RIGHT, FlxG.keys.justPressed.UP, FlxG.keys.justPressed.DOWN];
-		var moveKeys =  (controls.mobileC) ? [touchPad.buttonLeft.pressed, touchPad.buttonRight.pressed, touchPad.buttonUp.pressed, touchPad.buttonDown.pressed] : [FlxG.keys.pressed.LEFT, FlxG.keys.pressed.RIGHT, FlxG.keys.pressed.UP, FlxG.keys.pressed.DOWN];
+		var moveKeysP = (controls.mobileC) ? [mobilePadJustPressed("LEFT"), mobilePadJustPressed("RIGHT"), mobilePadJustPressed("UP"), mobilePadJustPressed("DOWN")] : [FlxG.keys.justPressed.LEFT, FlxG.keys.justPressed.RIGHT, FlxG.keys.justPressed.UP, FlxG.keys.justPressed.DOWN];
+		var moveKeys =  (controls.mobileC) ? [mobilePadPressed("LEFT"), mobilePadPressed("RIGHT"), mobilePadPressed("UP"), mobilePadPressed("DOWN")] : [FlxG.keys.pressed.LEFT, FlxG.keys.pressed.RIGHT, FlxG.keys.pressed.UP, FlxG.keys.pressed.DOWN];
 		if(moveKeysP.contains(true))
 		{
 			character.offset.x += ((moveKeysP[0] ? 1 : 0) - (moveKeysP[1] ? 1 : 0)) * shiftMultBig;
@@ -1007,7 +1007,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 				changedOffset = true;
 			}
 		}
-		if (touchPad.buttonA.justPressed)
+		if (mobilePadJustPressed("A"))
 		{
 			undoOffsets = [character.offset.x, character.offset.y];
 			character.offset.x = copiedOffset[0];
@@ -1078,14 +1078,14 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 		frameAdvanceText.color = clr;
 
 		// OTHER CONTROLS
-		if(FlxG.keys.justPressed.F12 || touchPad.buttonS.justPressed)
+		if(FlxG.keys.justPressed.F12 || mobilePadJustPressed("S"))
 			silhouettes.visible = !silhouettes.visible;
 
-		if((FlxG.keys.justPressed.F1 || touchPad.buttonF.justPressed) || (helpBg.visible && FlxG.keys.justPressed.ESCAPE))
+		if((FlxG.keys.justPressed.F1 || mobilePadJustPressed("F")) || (helpBg.visible && FlxG.keys.justPressed.ESCAPE))
 		{
 			if (controls.mobileC)
 			{
-				touchPad.forEachAlive(function(button:TouchButton){
+				mobileManager.mobilePad.forEachAlive(function(button:MobileButton){
 					if(button.tag != 'F')
 						button.visible = !button.visible;
 				});
@@ -1093,7 +1093,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 			helpBg.visible = !helpBg.visible;
 			helpTexts.visible = helpBg.visible;
 		}
-		else if(FlxG.keys.justPressed.ESCAPE || touchPad.buttonB.justPressed)
+		else if(FlxG.keys.justPressed.ESCAPE || mobilePadJustPressed("B"))
 		{
 			if(!_goToPlayState)
 			{
@@ -1364,7 +1364,7 @@ class CharacterEditorState extends MusicBeatState implements PsychUIEventHandler
 
 	function onMouseEvent(e:MouseEvent):Void
 	{
-		if (touchPad != null && !touchPad.anyPressed([ANY]))
+		if (mobileManager.mobilePad != null /* && !touchPad.anyPressed([ANY]) */)
 			switch (e.type)
 			{
 				case MouseEvent.MOUSE_DOWN:

@@ -32,12 +32,8 @@ Psych Engine Ultra is a highly customizable and advanced fork of Psych Engine, o
 
 ## Credits:
 * SametGkTe - Owner Of Psych Engine Ultra and Coder
+" ArkoseLabs - Mobile Porter & Co Owner and of Psych Engine Ultra (PEX v1.5)
 * Nexus - Helper of Psych Engine Ultra (Translations etc.)
-
-## Mobile Credits: (Mightly Change)
-* Homura - Head Porter of Psych Engine Mobile.
-* Karim - Second Porter of Psych Engine Mobile.
-* Moxie - Helper of Psych Engine Mobile.
 
 ### Psych Engine Credits
 * Shadow Mario - Main Programmer and Head of Psych Engine.

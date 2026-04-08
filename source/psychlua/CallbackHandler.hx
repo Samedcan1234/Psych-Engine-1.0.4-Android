@@ -52,12 +52,17 @@ class CallbackHandler
 		}
 		catch(e:haxe.Exception)
 		{
+			#if termux
+			LuaL.error(l, 'CALLBACK ERROR! ${e.details()}');
+			return 0;
+			#else
 			if(Lua_helper.sendErrorsToLua)
 			{
 				LuaL.error(l, 'CALLBACK ERROR! ${e.details()}');
 				return 0;
 			}
 			throw e;
+			#end
 		}
 		return 0;
 	}

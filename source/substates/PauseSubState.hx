@@ -634,7 +634,7 @@ class PauseSubState extends MusicBeatSubstate
 		changeSelection();
 
 		// ── Refresh touch pad when menu changes ───────────────────
-		if (touchPad != null)
+		if (mobileManager.mobilePad != null)
 		{
 			removeTouchPad();
 			addTouchPad(menuItems.contains('Skip Time') ? 'LEFT_FULL' : 'UP_DOWN', 'A');
@@ -659,7 +659,7 @@ class PauseSubState extends MusicBeatSubstate
 		super.update(elapsed);
 
 		// ── Mobile touch pad null-check ───────────────────────────
-		if (touchPad == null)
+		if (mobileManager.mobilePad == null)
 		{
 			addTouchPad(menuItems.contains('Skip Time') ? 'LEFT_FULL' : 'UP_DOWN', 'A');
 			addTouchPadCamera();

@@ -59,19 +59,26 @@ jobs:
           haxelib run lime config JAVA_HOME $JAVA_HOME_17_arm64
           haxelib run lime config ANDROID_SETUP true
 
-      # Sadece hxcpp'nin ürettiği C++ obj dosyalarını cache'liyoruz.
-      # Setup, haxelib, kütüphaneler bu cache'e dahil DEĞİL.
-      # Cache key: os + buildArgs + kaynak kod hash'i
-      # Kaynak kod değişince hash değişir → cache otomatik geçersiz olur.
-      - name: Restore Compile Cache
-        id: compile-cache
+      - name: Restore cache for android builds
         uses: actions/cache@v4
         with:
+          key: cache-build-${{ inputs.name }}
           path: |
-            export/release/${{ inputs.name == 'Windows' && 'windows' || inputs.name == 'Linux' && 'linux' || inputs.name == 'Android' && 'android' || inputs.name == 'iOS' && 'ios' || 'macos' }}/obj
-          key: compile-${{ inputs.os }}-${{ inputs.buildArgs }}-${{ hashFiles('source/**', 'assets/**', '*.hx', '*.hxml', 'Project.xml') }}
+            ~/.gradle
+            .haxelib/
+            /home/runner/haxelib/
+            /Users/runner/haxelib/
+            C:/hostedtoolcache/windows/haxe/4.3.6/x64/lib/
+            ~/.haxelib/
+            export/release/android/haxe/
+            export/release/android/obj/
+            export/release/ios/${{ env.PROJECT_NAME }}/haxe/
+            export/release/ios/${{ env.PROJECT_NAME }}/obj/
+            export\release\windows\haxe\
+            export\release\windows\obj\
+            .haxelib\
           restore-keys: |
-            compile-${{ inputs.os }}-${{ inputs.buildArgs }}-
+            cache-build-${{ inputs.name }}
 
       - name: Compile
         run: haxelib run lime build ${{ inputs.buildArgs }}
@@ -93,3 +100,46 @@ jobs:
           name: ${{ inputs.artifactName }}
           path: ${{ inputs.artifactPath }}
           if-no-files-found: error
+
+      - name: Clear Old Cache
+        uses: actions/github-script@v7
+        continue-on-error: true # Don't break the build if deletion fails
+        with:
+          script: |
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            for (const cache of caches.data.actions_caches) {
+              if (cache.key == "cache-build-${{ inputs.name }}") {
+                console.log('Clearing ' + cache.key + '...')
+                await github.rest.actions.deleteActionsCacheById({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  cache_id: cache.id,
+                })
+                console.log("Cache cleared.")
+              }
+            }
+            
+      - name: Uploading new cache
+        uses: actions/cache@v4
+        with:
+          # caching again since for some reason it doesnt work with the first post cache shit
+          key: cache-build-${{ inputs.name }}
+          path: |
+            ~/.gradle
+            .haxelib/
+            /home/runner/haxelib/
+            /Users/runner/haxelib/
+            C:/hostedtoolcache/windows/haxe/4.3.6/x64/lib/
+            ~/.haxelib/
+            export/release/android/haxe/
+            export/release/android/obj/
+            export/release/ios/${{ env.PROJECT_NAME }}/haxe/
+            export/release/ios/${{ env.PROJECT_NAME }}/obj/
+            export\release\windows\haxe\
+            export\release\windows\obj\
+            .haxelib\
+          restore-keys: |
+            cache-build-${{ inputs.name }}

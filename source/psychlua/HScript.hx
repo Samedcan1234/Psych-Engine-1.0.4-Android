@@ -333,6 +333,7 @@ class HScript extends Iris
 		#if LUA_ALLOWED
 		set('parentLua', parentLua);
 
+		/*
 		set("addTouchPad", (DPadMode:String, ActionMode:String) -> {
 			PlayState.instance.makeLuaTouchPad(DPadMode, ActionMode);
 			PlayState.instance.addLuaTouchPad();
@@ -373,6 +374,7 @@ class HScript extends Iris
 			}
 			return PlayState.instance.luaTouchPadJustReleased(button);
 		});
+		*/
 		#else
 		set('parentLua', null);
 		#end

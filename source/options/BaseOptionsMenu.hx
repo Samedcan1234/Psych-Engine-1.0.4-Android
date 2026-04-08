@@ -34,7 +34,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	public var rpcTitle:String;
 	public var bg:FlxSprite;
 	
-	// Modern UI Elements
 	var bgGradient:FlxSprite;
 	var topBar:FlxSprite;
 	var bottomBar:FlxSprite;
@@ -48,11 +47,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	
 	var cPressed:Bool = false;
 	
-	// Animation
 	var animTimer:Float = 0;
 	var pulseTimer:Float = 0;
 	
-	// Category colors
 	var categoryColors:Map<String, Array<Int>> = [
 		'Note Colors' => [0xFF666666, 0xFF888888],
 		'Controls' => [0xFFE0A32A, 0xFFFF9900],
@@ -63,7 +60,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		'Language' => [0xFFFFD700, 0xFFFFEE00]
 	];
 	
-	// Kilitli option için gri renk sabiti
 	static inline var LOCKED_COLOR:Int   = 0xFF888888;
 	static inline var UNLOCKED_COLOR:Int = 0xFFFFFFFF;
 
@@ -78,11 +74,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		DiscordClient.changePresence(rpcTitle, null);
 		#end
 		
-		// ═══════════════════════════════════════
-		// 1. MULTI-LAYER ANIMATED BACKGROUND
-		// ═══════════════════════════════════════
-		
-		// Base background
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
 		bg.setGraphicSize(Std.int(bg.width * 1.3));
@@ -92,7 +83,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		bg.scrollFactor.set(0.05, 0.05);
 		add(bg);
 		
-		// Gradient overlay
 		var colors = categoryColors.exists(title) ? categoryColors.get(title) : [0xFF1a1a2e, 0xFF16213e];
 		bgGradient = FlxGradient.createGradientFlxSprite(
 			FlxG.width,
@@ -104,7 +94,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		bgGradient.scrollFactor.set();
 		add(bgGradient);
 		
-		// Ekstra karartma katmanı
 		bgDarken = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xFF000000);
 		bgDarken.alpha = 0;
 		bgDarken.scrollFactor.set();
@@ -112,10 +101,8 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		
 		FlxTween.tween(bgDarken, {alpha: 0.4}, 0.6, {ease: FlxEase.quartOut});
 		
-		// Particle system
 		createParticleSystem();
 		
-		// Center glow
 		glowEffect = new FlxSprite(FlxG.width / 2 - 400, FlxG.height / 2 - 400);
 		glowEffect.makeGraphic(800, 800, FlxColor.WHITE);
 		glowEffect.blend = ADD;
@@ -125,17 +112,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		
 		FlxTween.tween(glowEffect, {alpha: 0.06}, 0.8, {ease: FlxEase.quartOut});
 
-		// ═══════════════════════════════════════
-		// 2. TOP BAR
-		// ═══════════════════════════════════════
-		
 		topBar = new FlxSprite(0, -150).makeGraphic(FlxG.width, 130, 0xDD000000);
 		topBar.scrollFactor.set();
 		add(topBar);
 		
 		FlxTween.tween(topBar, {y: 0}, 0.7, {ease: FlxEase.expoOut, startDelay: 0.1});
 		
-		// Category title
 		titleText = new FlxText(60, 35, FlxG.width - 120, title, 52);
 		titleText.setFormat(Paths.font("vcr.ttf"), 52, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, colors[0]);
 		titleText.borderSize = 3;
@@ -145,7 +127,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		
 		FlxTween.tween(titleText, {alpha: 1}, 0.6, {ease: FlxEase.quartOut, startDelay: 0.3});
 		
-		// Subtitle hint
 		var subtitleText:FlxText = new FlxText(60, 90, FlxG.width - 120,
 			Language.getPhrase('base_options_hint',
 				'Up / Down = Navigate  |  ENTER = Select  |  R = Reset  |  ESC = Back'), 22);
@@ -156,8 +137,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		
 		FlxTween.tween(subtitleText, {alpha: 0.7}, 0.6, {ease: FlxEase.quartOut, startDelay: 0.5});
 
-		// Yan Panel
-		
 		sidePanel = FlxGradient.createGradientFlxSprite(
 			350,
 			FlxG.height,
@@ -170,16 +149,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		
 		FlxTween.tween(sidePanel, {x: 0}, 0.8, {ease: FlxEase.expoOut, startDelay: 0.2});
 		
-		// Decorative line
 		var decorLine:FlxSprite = new FlxSprite(40, 130).makeGraphic(4, FlxG.height - 260, FlxColor.WHITE);
 		decorLine.alpha = 0.2;
 		decorLine.scrollFactor.set();
 		add(decorLine);
 
-		// ═══════════════════════════════════════
-		// 4. OPTION CARDS CONTAINER
-		// ═══════════════════════════════════════
-		
 		optionCards = new FlxTypedGroup<FlxSprite>();
 		add(optionCards);
 		
@@ -195,17 +169,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		fileSelectorGroup = new FlxTypedGroup<FileSelector>();
 		add(fileSelectorGroup);
 
-		// ═══════════════════════════════════════
-		// 5. BOTTOM INFO PANEL
-		// ═══════════════════════════════════════
-		
 		bottomBar = new FlxSprite(0, FlxG.height).makeGraphic(FlxG.width, 160, 0xDD000000);
 		bottomBar.scrollFactor.set();
 		add(bottomBar);
 		
 		FlxTween.tween(bottomBar, {y: FlxG.height - 160}, 0.7, {ease: FlxEase.expoOut, startDelay: 0.3});
 		
-		// Description box
 		descBox = new FlxSprite(30, FlxG.height - 140).makeGraphic(FlxG.width - 60, 120, 0x88000000);
 		descBox.scrollFactor.set();
 		descBox.alpha = 0;
@@ -222,23 +191,14 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		
 		FlxTween.tween(descText, {alpha: 1}, 0.6, {ease: FlxEase.quartOut, startDelay: 1});
 
-		// ═══════════════════════════════════════
-		// 6. SCROLL INDICATOR
-		// ═══════════════════════════════════════
-		
 		scrollIndicator = new FlxSprite(FlxG.width - 40, FlxG.height / 2 - 50).makeGraphic(30, 100, FlxColor.WHITE);
 		scrollIndicator.alpha = 0.3;
 		scrollIndicator.scrollFactor.set();
 		add(scrollIndicator);
 
-		// ═══════════════════════════════════════
-		// 7. BUILD OPTIONS
-		// ═══════════════════════════════════════
-		
 		for (i in 0...optionsArray.length)
 		{
-			// Option card background
-			var card:FlxSprite = new FlxSprite(0, 0).makeGraphic(800, 90, 0x66000000);
+			var card:FlxSprite = new FlxSprite(0, 0).makeGraphic(800, 100, 0x66000000);
 			card.ID = i;
 			card.alpha = 0;
 			card.scrollFactor.set();
@@ -251,7 +211,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			optionText.scrollFactor.set();
 			grpOptions.add(optionText);
 
-			// Type-specific elements
 			if(optionsArray[i].type == BOOL)
 			{
 				var checkbox:CheckboxThingie = new CheckboxThingie(optionText.x - 105, optionText.y, Std.string(optionsArray[i].getValue()) == 'true');
@@ -286,7 +245,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			
 			updateTextFrom(optionsArray[i]);
 			
-			// Staggered entrance animation
 			FlxTween.tween(card, {alpha: 0.7}, 0.4, {
 				ease: FlxEase.quartOut,
 				startDelay: 0.6 + (i * 0.05)
@@ -346,25 +304,18 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	{
 		super.update(elapsed);
 		
-		// ═══════════════════════════════════════
-		// ANIMATION UPDATES
-		// ═══════════════════════════════════════
-		
 		animTimer += elapsed;
 		pulseTimer += elapsed;
 		
-		// Rotate background
 		if (bg != null) {
 			bg.angle = Math.sin(animTimer * 0.3) * 2;
 		}
 		
-		// Pulse glow
 		if (glowEffect != null) {
 			glowEffect.alpha = 0.06 + Math.sin(pulseTimer * 2) * 0.03;
 			glowEffect.angle += elapsed * 15;
 		}
 		
-		// Update scroll indicator
 		if (scrollIndicator != null && optionsArray.length > 0)
 		{
 			var progress:Float = curSelected / (optionsArray.length - 1);
@@ -372,10 +323,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			scrollIndicator.y = FlxMath.lerp(scrollIndicator.y, indicatorY, elapsed * 10);
 		}
 
-		// ═══════════════════════════════════════
-		// CARD POSITIONING
-		// ═══════════════════════════════════════
-		
 		var startY:Float = 200;
 		var spacing:Float = 105;
 		var centerX:Float = (FlxG.width - 800) / 2;
@@ -384,24 +331,23 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		{
 			var targetY:Float = startY + ((num - curSelected) * spacing);
 			item.y = FlxMath.lerp(item.y, targetY, elapsed * 10);
+			item.x = FlxMath.lerp(item.x, centerX + 110, elapsed * 10);
 		
 			var card = optionCards.members[num];
 			if (card != null)
 			{
-				card.x = FlxMath.lerp(card.x, centerX, elapsed * 10);
-				card.y = FlxMath.lerp(card.y, item.y - 15, elapsed * 10);
-			
-				item.x = FlxMath.lerp(item.x, centerX + 110, elapsed * 10);
+				card.x = item.x - 40;
+				card.y = item.y + 25;
+				card.scale.x = item.scale.x;
+				card.scale.y = item.scale.y;
 			
 				if (num == curSelected)
 				{
 					card.alpha = FlxMath.lerp(card.alpha, 1, elapsed * 10);
-					item.scale.set(1, 1);
 				}
 				else
 				{
 					card.alpha = FlxMath.lerp(card.alpha, 0.5, elapsed * 10);
-					item.scale.set(0.85, 0.85);
 				}
 			}
 		}
@@ -422,7 +368,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 
 		if (controls.BACK) {
-			// Smooth exit animation
 			FlxTween.tween(bgGradient, {alpha: 0}, 0.3, {ease: FlxEase.quartIn});
 			FlxTween.tween(bgDarken, {alpha: 0}, 0.3, {ease: FlxEase.quartIn});
 			FlxTween.tween(topBar, {y: -150}, 0.3, {ease: FlxEase.backIn});
@@ -452,13 +397,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 						curOption.change();
 						reloadCheckboxes();
 						
-						// Visual feedback
-						var card = optionCards.members[curSelected];
-						if (card != null)
+						var item = grpOptions.members[curSelected];
+						if (item != null)
 						{
-							FlxTween.cancelTweensOf(card.scale);
-							card.scale.set(1.05, 1.05);
-							FlxTween.tween(card.scale, {x: 1, y: 1}, 0.3, {ease: FlxEase.elasticOut});
+							FlxTween.cancelTweensOf(item.scale);
+							item.scale.set(1.1, 1.1);
+							FlxTween.tween(item.scale, {x: 1.05, y: 1.05}, 0.3, {ease: FlxEase.elasticOut});
 						}
 					}
 
@@ -508,17 +452,13 @@ class BaseOptionsMenu extends MusicBeatSubstate
 					}
 
 				default:
-					// ── Bağımlılık kilidi kontrolü ──────────────────────────────
-					// Eğer bu option başka bir BOOL'a bağlıysa ve o BOOL false ise,
-					// sol/sağ tuşlara basılınca uyarı sesi çal ve işlem yapma.
 					if (curOption.dependsOn != null && isOptionLocked(curOption))
 					{
 						if (controls.UI_LEFT_P || controls.UI_RIGHT_P)
 						{
 							FlxG.sound.play(Paths.sound('cancelMenu'));
 
-							// Parent bool option'ın adını bul
-							var parentName:String = curOption.dependsOn; // fallback: variable adı
+							var parentName:String = curOption.dependsOn;
 							for (parentOpt in optionsArray)
 							{
 								if (parentOpt.variable == curOption.dependsOn)
@@ -543,7 +483,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 					}
 					else
 					{
-						// ── Normal sol/sağ değişim mantığı ─────────────────────
 						if(controls.UI_LEFT || controls.UI_RIGHT)
 						{
 							var pressed = (controls.UI_LEFT_P || controls.UI_RIGHT_P);
@@ -622,11 +561,10 @@ class BaseOptionsMenu extends MusicBeatSubstate
 							holdTime = 0;
 						}
 					}
-					// ────────────────────────────────────────────────────────────
 			}
 			
 			var cPressed:Bool = false;
-			if (touchPad != null && touchPad.buttonC != null && touchPad.buttonC.justPressed) {
+			if (mobileManager.mobilePad != null && getMobilePadButton("buttonC") != null && mobilePadJustPressed("C")) {
 				cPressed = true;
 			}
 
@@ -651,7 +589,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				FlxG.sound.play(Paths.sound('cancelMenu'));
 				reloadCheckboxes();
 				
-				// Visual feedback
 				FlxG.camera.flash(FlxColor.WHITE, 0.2);
 			}
 		}
@@ -661,15 +598,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// BAĞIMLILIK SİSTEMİ
-	// ═══════════════════════════════════════════════════════════════
-
-	/**
-	 * Verilen option'ın kilitli olup olmadığını döndürür.
-	 * dependsOn null ise her zaman false (kilitli değil) döner.
-	 * dependsOn dolu ise, ilgili BOOL option'ın değeri false ise true (kilitli) döner.
-	 */
 	function isOptionLocked(option:Option):Bool
 	{
 		if (option.dependsOn == null) return false;
@@ -678,34 +606,25 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			if (parentOpt.variable == option.dependsOn)
 				return Std.string(parentOpt.getValue()) != 'true';
 		}
-		// Parent bulunamazsa kilitleme (güvenli taraf)
 		return false;
 	}
 
-	/**
-	 * Tüm option'ların bağımlılık durumuna göre renklerini günceller.
-	 * Kilitli olanlar gri, serbest olanlar beyaz görünür.
-	 * BOOL option'lar için checkbox rengini değiştirir.
-	 * STRING/INT/FLOAT/vb. için hem label hem value text'i renklendirir.
-	 */
 	function updateDependencyVisuals()
 	{
 		for (i in 0...optionsArray.length)
 		{
 			var opt = optionsArray[i];
-			if (opt.dependsOn == null) continue; // Bağımlılık yoksa atla
+			if (opt.dependsOn == null) continue;
 
 			var locked:Bool = isOptionLocked(opt);
 			var targetColor:Int = locked ? LOCKED_COLOR : UNLOCKED_COLOR;
 
-			// Alphabet label rengini güncelle
 			var optText = grpOptions.members[i];
 			if (optText != null)
 				optText.color = targetColor;
 
 			if (opt.type == BOOL)
 			{
-				// Checkbox'ın rengini güncelle
 				for (checkbox in checkboxGroup)
 				{
 					if (checkbox.ID == i)
@@ -717,7 +636,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			}
 			else
 			{
-				// Değer text'inin rengini güncelle (AttachedText)
 				for (txt in grpTexts)
 				{
 					if (txt.ID == i)
@@ -730,11 +648,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-
 	function bindingKeyUpdate(elapsed:Float)
 	{
-		if(touchPad.buttonB.pressed || FlxG.keys.pressed.ESCAPE || FlxG.gamepads.anyPressed(B))
+		if(mobilePadPressed("B") || FlxG.keys.pressed.ESCAPE || FlxG.gamepads.anyPressed(B))
 		{
 			holdingEsc += elapsed;
 			if(holdingEsc > 0.5)
@@ -743,7 +659,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				closeBinding();
 			}
 		}
-		else if (touchPad.buttonC.pressed || FlxG.keys.pressed.BACKSPACE || FlxG.gamepads.anyPressed(BACK))
+		else if (mobilePadPressed("C") || FlxG.keys.pressed.BACKSPACE || FlxG.gamepads.anyPressed(BACK))
 		{
 			holdingEsc += elapsed;
 			if(holdingEsc > 0.5)
@@ -938,7 +854,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		descText.text = optionsArray[curSelected].description;
 		
-		// Animate description update
 		FlxTween.cancelTweensOf(descText);
 		descText.alpha = 0;
 		FlxTween.tween(descText, {alpha: 1}, 0.3, {ease: FlxEase.quartOut});
@@ -947,7 +862,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		{
 			item.targetY = num - curSelected;
 			item.alpha = 0.6;
-			item.scale.set(0.85, 0.85);
 			
 			if (item.targetY == 0)
 			{
@@ -955,6 +869,17 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				FlxTween.cancelTweensOf(item.scale);
 				item.scale.set(1, 1);
 				FlxTween.tween(item.scale, {x: 1.05, y: 1.05}, 0.2, {ease: FlxEase.backOut});
+			}
+			else
+			{
+				if (item.scale.x > 0.85)
+				{
+					FlxTween.cancelTweensOf(item.scale);
+					FlxTween.tween(item.scale, {x: 0.85, y: 0.85}, 0.2, {ease: FlxEase.quartOut});
+				}
+				else {
+					item.scale.set(0.85, 0.85);
+				}
 			}
 		}
 		
@@ -967,7 +892,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		curOption = optionsArray[curSelected];
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 
-		// Seçim değişince bağımlılık görsellerini tazele
 		updateDependencyVisuals();
 	}
 
@@ -976,7 +900,6 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		for (checkbox in checkboxGroup)
 			checkbox.daValue = Std.string(optionsArray[checkbox.ID].getValue()) == 'true';
 
-		// Checkbox durumu değişince bağımlı option'ların görünümünü güncelle
 		updateDependencyVisuals();
 	}
 

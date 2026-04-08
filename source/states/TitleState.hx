@@ -22,7 +22,6 @@ import shaders.ColorSwap;
 import states.StoryMenuState;
 import states.MainMenuState;
 
-// TWEEN EKLENTİLERİ İÇİN GEREKLİ KÜTÜPHANELER
 import flixel.tweens.FlxTween;
 import flixel.tweens.FlxEase;
 
@@ -57,7 +56,7 @@ class TitleState extends MusicBeatState
 
 	var credGroup:FlxGroup = new FlxGroup();
 	var textGroup:FlxGroup = new FlxGroup();
-	var extraSprites:Array<FlxSprite> = []; // Ekstra ikonları tutmak için
+	var extraSprites:Array<FlxSprite> = [];
 
 	var blackScreen:FlxSprite;
 	var credTextShit:Alphabet;
@@ -74,7 +73,6 @@ class TitleState extends MusicBeatState
 	var currentVideo:VideoSprite = null;
 	#end
 
-	// LOGO ANİMASYONU İÇİN KONTROL
 	var logoTweenFinished:Bool = false;
 
 	#if TITLE_SCREEN_EASTER_EGG
@@ -95,7 +93,13 @@ class TitleState extends MusicBeatState
 		{
 			ClientPrefs.loadPrefs();
 			Language.reloadPhrases();
-			MobileData.init();
+			MobileConfig.init('MobileControls', CoolUtil.getSavePath(), 'assets/shared/mobile/',
+				[
+					['MobilePad/DPadModes', ButtonModes.DPAD],
+					['MobilePad/ActionModes', ButtonModes.ACTION],
+					['Hitbox/HitboxModes', ButtonModes.HITBOX]
+				]
+			);
 		}
 
 		curWacky = FlxG.random.getObject(getIntroTextShit());
@@ -230,15 +234,15 @@ class TitleState extends MusicBeatState
 		loadJsonData();
 		#if TITLE_SCREEN_EASTER_EGG easterEggData(); #end
 		Conductor.bpm = musicBPM;
-
-		// --- LOGO DEĞİŞİKLİKLERİ ---
-		logoBl = new FlxSprite(logoPosition.x, logoPosition.y);
-		// XML YOK. Sadece PNG resmi olarak yüklüyoruz. Resminin adı farklıysa burayı değiştir (örn: 'logo')
-		logoBl.loadGraphic(Paths.image('logoBumpin')); 
-		logoBl.antialiasing = ClientPrefs.data.antialiasing;
-		logoBl.updateHitbox();
 		
-		// Intro geçilene kadar logoyu saklıyoruz ve küçültüyoruz
+		logoBl = new FlxSprite(logoPosition.x, logoPosition.y);
+		logoBl.frames = Paths.getSparrowAtlas('logoBumpin');
+
+		logoBl.antialiasing = ClientPrefs.data.antialiasing;
+		logoBl.animation.addByPrefix('bump', 'logo bumpin', 24, false);
+		logoBl.animation.play('bump');
+		logoBl.updateHitbox();
+
 		logoBl.alpha = 0;
 		logoBl.scale.set(0.1, 0.1);
 
@@ -607,7 +611,7 @@ class TitleState extends MusicBeatState
 		else
 			targetX = targetText.x + targetText.width + 20;
 
-		var targetY:Float = targetText.y + (targetText.height / 2) - (icon.height / 2) + offsetY; // offsetY eklendi
+		var targetY:Float = targetText.y + (targetText.height / 2) - (icon.height / 2) + offsetY;
 
 		icon.x = targetX;
 		icon.y = targetY + 50;
@@ -681,7 +685,6 @@ class TitleState extends MusicBeatState
 				case 5:
 					deleteCoolText();
 				case 6:
-					// Newgrounds logosu - üstte
 					ngSpr.visible = true;
 					ngSpr.screenCenter(X);
 					ngSpr.y = 20;
@@ -718,7 +721,7 @@ class TitleState extends MusicBeatState
 					FlxTween.tween(peuLogo, {y: peuLogo.y - 10, alpha: 1}, 2.5, {ease: FlxEase.expoOut});
 
 				case 15:
-					createCoolText(['Psych Engine Ultra'], 250); // 80px aşağıda başlasın
+					createCoolText(['Psych Engine Ultra'], 250);
 
 				case 16:
 					addMoreText('SametGkTe TarafIndan', 280);
@@ -812,7 +815,6 @@ class TitleState extends MusicBeatState
 				remove(credGroup);
 				FlxG.camera.flash(FlxColor.WHITE, 4);
 
-				// --- LOGO GELİŞ ANİMASYONU ---
 				startLogoTween();
 
 				var easteregg:String = FlxG.save.data.psychDevsEasterEgg;

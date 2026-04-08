@@ -1,24 +1,3 @@
-/*
- * Copyright (C) 2025 Mobile Porting Team
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- */
 package mobile.options;
 
 import mobile.backend.MobileScaleMode;
@@ -29,7 +8,6 @@ import options.Option;
 
 class MobileOptionsSubState extends BaseOptionsMenu
 {
-	final exControlTypes:Array<String> = ["NONE", "SINGLE", "DOUBLE"];
 	final hintOptions:Array<String> = ["No Gradient", "No Gradient (Old)", "Gradient", "Hidden"];
 	var option:Option;
 
@@ -40,10 +18,15 @@ class MobileOptionsSubState extends BaseOptionsMenu
 	{
 		title = 'Mobile Options';
 		rpcTitle = 'Mobile Options Menu';
+		var HitboxTypes:Array<String> = Mods.mergeAllTextsNamed('mobile/Hitbox/HitboxModes/hitboxModeList.txt');
 
-		option = new Option('Extra Controls',
-			'Select how many extra buttons you prefer to have?\nThey can be used for mechanics with LUA or HScript.',
-			'extraButtons', STRING, exControlTypes);
+		var option:Option = new Option('Extra Controls', 'Select how many extra buttons you prefer to have?\nThey can be used for mechanics with LUA or HScript.',
+			 'extraButtons', INT);
+		option.scrollSpeed = 1;
+		option.minValue = 0;
+		option.maxValue = 4;
+		option.changeValue = 1;
+		option.decimals = 0;
 		addOption(option);
 
 		option = new Option('Mobile Controls Opacity',
@@ -56,7 +39,7 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		option.decimals = 1;
 		option.onChange = () ->
 		{
-			touchPad.alpha = curOption.getValue();
+			mobileManager.mobilePad.alpha = curOption.getValue();
 			ClientPrefs.toggleVolumeKeys();
 		};
 		addOption(option);
@@ -75,16 +58,16 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		addOption(option);
 		#end
 
-		if (MobileData.mode == 3)
-		{
-			option = new Option('Hitbox Design', 'Choose how your hitbox should look like.', 'hitboxType', STRING, hintOptions);
-			addOption(option);
+		option = new Option('Hitbox Mode', 'Choose your Hitbox Style!', 'hitboxMode', STRING, HitboxTypes);
+		addOption(option);
 
-			option = new Option('Hitbox Position',
-				'If checked, the hitbox will be put at the bottom of the screen, otherwise will stay at the top.',
-				'hitboxPos', BOOL);
-			addOption(option);
-		}
+		option = new Option('Hitbox Design', 'Choose how your hitbox should look like.', 'hitboxType', STRING, hintOptions);
+		addOption(option);
+
+		option = new Option('Hitbox Position',
+			'If checked, the hitbox will be put at the bottom of the screen, otherwise will stay at the top.',
+			'hitboxPos', BOOL);
+		addOption(option);
 
 		option = new Option('Dynamic Controls Color',
 			'If checked, the mobile controls color will be set to the notes color in your settings.\n(have effect during gameplay only)',
@@ -92,8 +75,6 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		// ── Mod Yeri ────────────────────────────────────────────────────────
-		// Android, iOS, Windows, macOS ve Linux'ta göster
-		#if (android || ios || windows || mac || linux)
 		modPathOption = new Option('Mod Yeri',
 			'Modlarının bulunduğu klasörü seç.\nONAY\'a bas → dosya yöneticisi açılır → klasörü seç.\nDeğişiklik oyunu yeniden başlatınca geçerli olur.',
 			'modsPath', STRING, [_getShortModPath()]);
@@ -111,7 +92,6 @@ class MobileOptionsSubState extends BaseOptionsMenu
 			CoolUtil.showPopUp('Mod klasörü varsayılana sıfırlandı.\nDeğişiklik için oyunu yeniden başlatın.', 'Sıfırlandı');
 		};
 		addOption(resetOption);
-		#end
 		// ────────────────────────────────────────────────────────────────────
 
 		super();

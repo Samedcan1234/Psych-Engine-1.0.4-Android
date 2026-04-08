@@ -432,8 +432,8 @@ class Spanish implements ILanguage
 		"reset_achievement_confirm" => "El progreso del logro se reiniciará. ¿Estás seguro?",
 
 		// ── TouchPad ─────────────────────────────────────────────
-		"touchpad_dpadmode_missing"   => "El touchPad dpadMode \"{1}\" no existe.",
-		"touchpad_actionmode_missing" => "El touchPad actionMode \"{1}\" no existe.",
+		"touchpad_dpadmode_missing"   => "El mobileManager.mobilePad dpadMode \"{1}\" no existe.",
+		"touchpad_actionmode_missing" => "El mobileManager.mobilePad actionMode \"{1}\" no existe.",
 
 		// ── Errors & Warnings ─────────────────────────────────────
 		"chart_editor_unsaved_changes" => "¡Tienes cambios sin guardar!",

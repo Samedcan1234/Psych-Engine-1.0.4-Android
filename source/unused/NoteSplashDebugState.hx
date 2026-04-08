@@ -194,8 +194,8 @@ class NoteSplashDebugState extends MusicBeatState implements PsychUIEventHandler
 
 		if(!notTyping) return;
 		
-		if (FlxG.keys.justPressed.A || touchPad.buttonUp.justPressed) changeSelection(-1);
-		else if (FlxG.keys.justPressed.D || touchPad.buttonDown.justPressed) changeSelection(1);
+		if (FlxG.keys.justPressed.A || mobilePadJustPressed("UP")) changeSelection(-1);
+		else if (FlxG.keys.justPressed.D || mobilePadJustPressed("DOWN")) changeSelection(1);
 
 		if(maxAnims < 1) return;
 
@@ -203,13 +203,13 @@ class NoteSplashDebugState extends MusicBeatState implements PsychUIEventHandler
 		{
 			var movex = 0;
 			var movey = 0;
-			if(FlxG.keys.justPressed.LEFT || touchPad.buttonLeft2.justPressed) movex = -1;
-			else if(FlxG.keys.justPressed.RIGHT || touchPad.buttonRight2.justPressed) movex = 1;
+			if(FlxG.keys.justPressed.LEFT || mobilePadJustPressed("LEFT2")) movex = -1;
+			else if(FlxG.keys.justPressed.RIGHT || mobilePadJustPressed("RIGHT2")) movex = 1;
 
-			if(FlxG.keys.justPressed.UP || touchPad.buttonUp2.justPressed) movey = 1;
-			else if(FlxG.keys.justPressed.DOWN || touchPad.buttonDown2.justPressed) movey = -1;
+			if(FlxG.keys.justPressed.UP || mobilePadJustPressed("UP2")) movey = 1;
+			else if(FlxG.keys.justPressed.DOWN || mobilePadJustPressed("DOWN2")) movey = -1;
 			
-			if(FlxG.keys.pressed.SHIFT || touchPad.buttonZ.pressed)
+			if(FlxG.keys.pressed.SHIFT || mobilePadPressed("Z"))
 			{
 				movex *= 10;
 				movey *= 10;
@@ -227,14 +227,14 @@ class NoteSplashDebugState extends MusicBeatState implements PsychUIEventHandler
 		// Copy & Paste
 		if(FlxG.keys.pressed.CONTROL || idk)
 		{
-			if(FlxG.keys.justPressed.C || touchPad.buttonC.justPressed)
+			if(FlxG.keys.justPressed.C || mobilePadJustPressed("C"))
 			{
 				var arr:Array<Float> = selectedArray();
 				if(copiedArray == null) copiedArray = [0, 0];
 				copiedArray[0] = arr[0];
 				copiedArray[1] = arr[1];
 			}
-			else if(FlxG.keys.justPressed.V || touchPad.buttonV.justPressed && copiedArray != null)
+			else if(FlxG.keys.justPressed.V || mobilePadJustPressed("V") && copiedArray != null)
 			{
 				var offs:Array<Float> = selectedArray();
 				offs[0] = copiedArray[0];
@@ -253,7 +253,7 @@ class NoteSplashDebugState extends MusicBeatState implements PsychUIEventHandler
 				savedText.visible = false;
 		}
 
-		if(FlxG.keys.justPressed.ENTER || touchPad.buttonA.justPressed)
+		if(FlxG.keys.justPressed.ENTER || mobilePadJustPressed("A"))
 		{
 			savedText.text = 'Press ${(controls.mobileC) ? 'A' : 'ENTER'} again to save.';
 			if(pressEnterToSave > 0) //save
@@ -272,15 +272,15 @@ class NoteSplashDebugState extends MusicBeatState implements PsychUIEventHandler
 		}
 
 		// Reset anim & change anim
-		if (FlxG.keys.justPressed.SPACE || touchPad.buttonY.justPressed)
+		if (FlxG.keys.justPressed.SPACE || mobilePadJustPressed("Y"))
 			changeAnim();
-		else if (FlxG.keys.justPressed.S || touchPad.buttonLeft.justPressed) changeAnim(-1);
-		else if (FlxG.keys.justPressed.W || touchPad.buttonRight.justPressed) changeAnim(1);
+		else if (FlxG.keys.justPressed.S || mobilePadJustPressed("LEFT")) changeAnim(-1);
+		else if (FlxG.keys.justPressed.W || mobilePadJustPressed("RIGHT")) changeAnim(1);
 
 		// Force frame
 		var updatedFrame:Bool = false;
-		if(updatedFrame = FlxG.keys.justPressed.Q || touchPad.buttonX.justPressed) forceFrame--;
-		else if(updatedFrame = FlxG.keys.justPressed.E || touchPad.buttonE.justPressed) forceFrame++;
+		if(updatedFrame = FlxG.keys.justPressed.Q || mobilePadJustPressed("X")) forceFrame--;
+		else if(updatedFrame = FlxG.keys.justPressed.E || mobilePadJustPressed("E")) forceFrame++;
 
 		if(updatedFrame)
 		{

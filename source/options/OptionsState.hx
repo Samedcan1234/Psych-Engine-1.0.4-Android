@@ -10,11 +10,17 @@ import flixel.effects.particles.FlxEmitter;
 import flixel.effects.particles.FlxParticle;
 import flixel.addons.display.FlxBackdrop;
 import flixel.math.FlxPoint;
+import flixel.math.FlxMath;
 import flixel.input.keyboard.FlxKey;
+import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.FlxSprite;
+import flixel.text.FlxText;
+import flixel.util.FlxColor;
+import flixel.FlxG;
+import flixel.util.FlxTimer;
 
 class OptionsState extends MusicBeatState
 {
-	// Boş bırakıyoruz, create() içinde Language ile dolduracağız
 	var options:Array<String> = [];
 
 	private var categoryCards:FlxTypedGroup<FlxSprite>;
@@ -37,15 +43,14 @@ class OptionsState extends MusicBeatState
 	var secretIndex:Int = 0;
 	var secretUnlocked:Bool = false;
 
-	// UI
-	
-	// BG 
 	var bg:FlxSprite;
 	var bgPattern:FlxBackdrop;
-	var bgGradient:FlxSprite;
 	var bgDarken:FlxSprite;
 	var bgVignette:FlxSprite;
 	var bgOrbs:FlxTypedGroup<FlxSprite>;
+	
+	var gradientGroup:FlxTypedGroup<FlxSprite>; 
+	
 	var headerPanel:FlxSprite;
 	var headerGlow:FlxSprite;
 	var titleText:FlxText;
@@ -53,13 +58,11 @@ class OptionsState extends MusicBeatState
 	var breadcrumbText:FlxText;
 	var versionText:FlxText;
 	
-	// Profile
 	var profilePanel:FlxSprite;
 	var profileIcon:FlxSprite;
 	var profileName:FlxText;
 	var profileStats:FlxText;
 	
-	// Desc
 	var descPanel:FlxSprite;
 	var descPanelGlow:FlxSprite;
 	var descIcon:FlxSprite;
@@ -67,7 +70,6 @@ class OptionsState extends MusicBeatState
 	var descText:FlxText;
 	var descStats:FlxText;
 	
-	// Efects
 	var particleEmitter:FlxEmitter;
 	var secondaryParticles:FlxEmitter;
 	var glowEffect:FlxSprite;
@@ -75,16 +77,11 @@ class OptionsState extends MusicBeatState
 	var scanlines:FlxSprite;
 	var floatingShapes:FlxTypedGroup<FlxSprite>;
 	
-	// Control Hints
 	var controlHintsPanel:FlxSprite;
 	var controlHintsText:FlxText;
 	
-	// Cam
-	var camFollow:FlxObject;
-	var camFollowPos:FlxObject;
-	var bgColorTween:FlxTween;
+	var targetScrollY:Float = 0;
 	
-	// Anim
 	var animTimer:Float = 0;
 	var pulseTimer:Float = 0;
 	var waveTimer:Float = 0;
@@ -92,7 +89,6 @@ class OptionsState extends MusicBeatState
 	var glowTimer:Float = 0;
 	var orbTimer:Float = 0;
 	
-	// Cart Holder
 	var cardWidth:Int = 340;
 	var cardHeight:Int = 140;
 	var cardSpacingX:Int = 20;
@@ -100,7 +96,6 @@ class OptionsState extends MusicBeatState
 	var gridStartX:Float = 70;
 	var gridStartY:Float = 135;
 
-	// Boş bırakıyoruz, create() içinde dolduracağız
 	var optionsColor:Map<String, Array<Int>> = [];
 	var optionsIconPaths:Map<String, String> = [];
 	var optionsDesc:Map<String, String> = [];
@@ -108,7 +103,7 @@ class OptionsState extends MusicBeatState
 
 	override function create()
 	{
-		// ── Önce tüm dil metinlerini doldur ──────────────────────
+		FlxG.camera.scroll.y = 0;
 		_buildLanguageData();
 
 		#if DISCORD_ALLOWED
@@ -118,47 +113,25 @@ class OptionsState extends MusicBeatState
 		createBackgroundSystem();
 		createParticleSystems();
 		createFloatingShapes();
+		createCardGrid();
 		createHeader();
 		createProfilePanel();
-		createCardGrid();
 		createDescriptionPanel();
 		createControlHints();
 		playEntranceAnimation();
-
-		// Camera setup
-		camFollow    = new FlxObject(0, 0, 1, 1);
-		camFollowPos = new FlxObject(0, 0, 1, 1);
-		add(camFollow);
-		add(camFollowPos);
-		
-		camFollow.setPosition(FlxG.width / 2, FlxG.height / 2);
-		camFollowPos.setPosition(FlxG.width / 2, FlxG.height / 2);
-		FlxG.camera.follow(camFollowPos, null, 1);
 		
 		updateGridSelection();
 		changeSelection();
 		ClientPrefs.saveSettings();
 
-		if (controls.mobileC)
-		{
-			var tipText:FlxText = new FlxText(150, FlxG.height - 24, 0,
-				'Press ' + (FlxG.onMobile ? 'C' : 'CTRL or C') + ' to Go Mobile Controls Menu', 16);
-			tipText.setFormat("VCR OSD Mono", 17, FlxColor.WHITE, LEFT,
-				FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-			tipText.borderSize = 1.25;
-			tipText.scrollFactor.set();
-			tipText.antialiasing = ClientPrefs.data.antialiasing;
-			add(tipText);
-		}
-		
 		addTouchPad('LEFT_FULL', 'A_B_C');
+		addTouchPadCamera();
 
 		super.create();
 	}
 	
 	function _buildLanguageData():Void
 	{
-		// options dizisi
 		options = [
 			Language.getPhrase('opt_note_colors',   'Note Colors'),
 			Language.getPhrase('opt_controls',      'Controls'),
@@ -176,7 +149,6 @@ class OptionsState extends MusicBeatState
 		options.push(Language.getPhrase('opt_mobile', 'Mobile Settings'));
 		#end
 
-		// optionsDesc
 		optionsDesc = [
 			Language.getPhrase('opt_note_colors',   'Note Colors')             => Language.getPhrase('opt_desc_note_colors',   'Customize the colors and appearance of the notes however you like.'),
 			Language.getPhrase('opt_controls',      'Controls')                => Language.getPhrase('opt_desc_controls',      'Configure keyboard and gamepad button assignments.'),
@@ -189,7 +161,6 @@ class OptionsState extends MusicBeatState
 			Language.getPhrase('opt_menu_settings', 'Menu Settings')           => Language.getPhrase('opt_desc_menu_settings', 'Customize the main menu appearance.')
 		];
 
-		// optionsStats
 		optionsStats = [
 			Language.getPhrase('opt_note_colors',   'Note Colors')             => Language.getPhrase('opt_stat_note_colors',   'Adjust Note Colors Using Colors.'),
 			Language.getPhrase('opt_controls',      'Controls')                => Language.getPhrase('opt_stat_controls',      'Default: W-A-S-D'),
@@ -202,7 +173,6 @@ class OptionsState extends MusicBeatState
 			Language.getPhrase('opt_menu_settings', 'Menu Settings')           => Language.getPhrase('opt_stat_menu_settings', 'Customize Main Menu')
 		];
 
-		// optionsColor
 		optionsColor = [
 			Language.getPhrase('opt_note_colors',   'Note Colors')             => [0xFF9B59B6, 0xFF8E44AD, 0xFF6C3483],
 			Language.getPhrase('opt_controls',      'Controls')                => [0xFFE67E22, 0xFFD35400, 0xFFA04000],
@@ -215,7 +185,6 @@ class OptionsState extends MusicBeatState
 			Language.getPhrase('opt_menu_settings', 'Menu Settings')         => [0xFFF39C12, 0xFFD68910, 0xFF7E5109],
 		];
 
-		// optionsIconPaths
 		optionsIconPaths = [
 			Language.getPhrase('opt_note_colors',   'Note Colors')             => 'note_colors',
 			Language.getPhrase('opt_controls',      'Controls')                => 'controls',
@@ -260,10 +229,6 @@ class OptionsState extends MusicBeatState
 		});
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// BG SİSTEMİ
-	// ═══════════════════════════════════════════════════════════════
-	
 	function createBackgroundSystem()
 	{
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
@@ -283,14 +248,23 @@ class OptionsState extends MusicBeatState
 		bgPattern.scrollFactor.set(0, 0);
 		add(bgPattern);
 		
-		bgGradient = FlxGradient.createGradientFlxSprite(
-			FlxG.width, FlxG.height,
-			[0xFF1a1a2e, 0xFF16213e, 0xFF0f3460, 0xFF0a0a15],
-			1, 135
-		);
-		bgGradient.alpha = 0;
-		bgGradient.scrollFactor.set(0, 0);
-		add(bgGradient);
+		gradientGroup = new FlxTypedGroup<FlxSprite>();
+		add(gradientGroup);
+		
+		for (i in 0...options.length)
+		{
+			var opt = options[i];
+			var colors = optionsColor.exists(opt) ? optionsColor.get(opt) : [0xFF444444, 0xFF333333, 0xFF222222];
+			var grad = FlxGradient.createGradientFlxSprite(
+				FlxG.width, FlxG.height,
+				[colors[0], colors[1], colors[2], 0xFF0a0a15],
+				1, 135
+			);
+			grad.alpha = 0;
+			grad.scrollFactor.set(0, 0);
+			grad.ID = i;
+			gradientGroup.add(grad);
+		}
 		
 		bgOrbs = new FlxTypedGroup<FlxSprite>();
 		add(bgOrbs);
@@ -370,6 +344,7 @@ class OptionsState extends MusicBeatState
 			var particle:FlxParticle = new FlxParticle();
 			particle.makeGraphic(3, 3, FlxColor.WHITE);
 			particle.blend = ADD;
+			particle.scrollFactor.set(0, 0);
 			particle.exists = false;
 			particleEmitter.add(particle);
 		}
@@ -389,6 +364,7 @@ class OptionsState extends MusicBeatState
 			var particle:FlxParticle = new FlxParticle();
 			particle.makeGraphic(5, 5, FlxColor.WHITE);
 			particle.alpha  = 0.15;
+			particle.scrollFactor.set(0, 0);
 			particle.exists = false;
 			secondaryParticles.add(particle);
 		}
@@ -580,7 +556,7 @@ class OptionsState extends MusicBeatState
 		controlHintsPanel.scrollFactor.set(0, 0); add(controlHintsPanel);
 
 		var hintStr:String = controls.mobileC
-			? Language.getPhrase('settings_hint_mobile',  'D-PAD: Gezin  |  A: Seç  |  B: Geri  |  C: Mobil Kontroller')
+			? Language.getPhrase('settings_hint_mobile',  'D-PAD: Gezin  |  A: Sec  |  B: Geri  |  C: Mobil Kontroller')
 			: Language.getPhrase('settings_hint_desktop', 'YUKARI/ASAGI/SOL/SAG: Gezin   |   ENTER: Sec   |   ESC: Geri');
 		
 		controlHintsText = new FlxText(0, FlxG.height + 6, FlxG.width, hintStr, 12);
@@ -593,9 +569,16 @@ class OptionsState extends MusicBeatState
 	function playEntranceAnimation()
 	{
 		FlxTween.tween(bgDarken,   {alpha: 0.6},  0.8, {ease: FlxEase.quartOut});
-		FlxTween.tween(bgGradient, {alpha: 0.85}, 1,   {ease: FlxEase.quartOut, startDelay: 0.1});
 		FlxTween.tween(bgPattern,  {alpha: 0.06}, 1.2, {ease: FlxEase.quartOut, startDelay: 0.2});
 		FlxTween.tween(glowEffect, {alpha: 0.1},  1,   {ease: FlxEase.quartOut, startDelay: 0.3});
+		
+		for (grad in gradientGroup.members)
+		{
+			if (grad != null && grad.ID == curSelected)
+			{
+				FlxTween.tween(grad, {alpha: 0.85}, 1, {ease: FlxEase.quartOut, startDelay: 0.1});
+			}
+		}
 		
 		for (orb in bgOrbs)
 			FlxTween.tween(orb, {alpha: 0.08 + Math.random() * 0.08}, 1.5,
@@ -646,10 +629,15 @@ class OptionsState extends MusicBeatState
 	
 	function playExitAnimation(callback:Void->Void)
 	{
-		FlxTween.tween(bgGradient, {alpha: 0}, 0.4, {ease: FlxEase.quartIn});
 		FlxTween.tween(bgDarken,   {alpha: 0}, 0.4, {ease: FlxEase.quartIn});
 		FlxTween.tween(bgPattern,  {alpha: 0}, 0.4, {ease: FlxEase.quartIn});
 		FlxTween.tween(glowEffect, {alpha: 0}, 0.4, {ease: FlxEase.quartIn});
+		
+		for (grad in gradientGroup.members)
+		{
+			if (grad != null && grad.alpha > 0)
+				FlxTween.tween(grad, {alpha: 0}, 0.4, {ease: FlxEase.quartIn});
+		}
 		
 		FlxTween.tween(headerPanel, {y: -150}, 0.4, {ease: FlxEase.backIn});
 		FlxTween.tween(headerGlow,  {y: -150}, 0.4, {ease: FlxEase.backIn});
@@ -676,10 +664,6 @@ class OptionsState extends MusicBeatState
 		new FlxTimer().start(0.45, function(tmr:FlxTimer) { callback(); });
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// SUBSTATE KAPANINCA
-	// ═══════════════════════════════════════════════════════════════
-
 	override function closeSubState()
 	{
 		super.closeSubState();
@@ -696,7 +680,6 @@ class OptionsState extends MusicBeatState
 		addTouchPad('LEFT_FULL', 'A_B_C');
 		persistentUpdate = true;
 
-		// Dil değişmiş olabilir, yeniden oluştur
 		_buildLanguageData();
 		playEntranceAnimation();
 	}
@@ -704,6 +687,8 @@ class OptionsState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
+		
+		FlxG.camera.scroll.y = FlxMath.lerp(FlxG.camera.scroll.y, targetScrollY, Math.max(0, Math.min(1, elapsed * 10)));
 		
 		if (FlxG.keys.justPressed.ANY)
 		{
@@ -782,12 +767,6 @@ class OptionsState extends MusicBeatState
 		
 		if (headerGlow != null)
 			headerGlow.alpha = 0.5 + Math.sin(waveTimer) * 0.2;
-		
-		var lerpVal:Float = Math.max(0, Math.min(1, elapsed * 6));
-		camFollowPos.setPosition(
-			FlxMath.lerp(camFollowPos.x, camFollow.x, lerpVal),
-			FlxMath.lerp(camFollowPos.y, camFollow.y, lerpVal)
-		);
 
 		for (num in 0...categoryCards.length)
 		{
@@ -802,6 +781,7 @@ class OptionsState extends MusicBeatState
 			var icon     = cardIcons.members[num];
 			var titleTxt = cardTitleTexts.members[num];
 			var desc     = cardDescTexts.members[num];
+			
 			if (card == null) continue;
 			
 			card.x = FlxMath.lerp(card.x, targetX, elapsed * 10);
@@ -848,14 +828,14 @@ class OptionsState extends MusicBeatState
 		if (controls.UI_DOWN_P)  changeGridSelection( 0, 1);
 
 		var cPressedState:Bool = false;
-		if (touchPad != null && touchPad.buttonC != null && touchPad.buttonC.justPressed)
+		if (mobileManager.mobilePad != null && getMobilePadButton("buttonC") != null && mobilePadJustPressed("C"))
 			cPressedState = true;
 
 		if (cPressedState || (FlxG.keys.justPressed.CONTROL && controls.mobileC))
 		{
 			persistentUpdate = false;
 			removeTouchPad();
-			openSubState(new mobile.substates.MobileControlSelectSubState());
+			openSubState(new mobile.substates.MobileExtraControl());
 		}
 
 		if (controls.BACK)
@@ -886,10 +866,6 @@ class OptionsState extends MusicBeatState
 			openSelectedSubstate(options[curSelected]);
 		}
 	}
-	
-	// ═══════════════════════════════════════════════════════════════
-	// GRID SEÇİM
-	// ═══════════════════════════════════════════════════════════════
 
 	function changeGridSelection(dx:Int, dy:Int)
 	{
@@ -948,31 +924,27 @@ class OptionsState extends MusicBeatState
 		FlxTween.tween(descTitle, {alpha: 1}, 0.3, {ease: FlxEase.quartOut});
 		FlxTween.tween(descText,  {alpha: 1}, 0.3, {ease: FlxEase.quartOut, startDelay: 0.1});
 		
-		var col = curSelected % gridCols;
-		var row = Std.int(curSelected / gridCols);
-		var targetCamX:Float = FlxG.width / 2;
-		var targetCamY:Float = FlxG.height / 2;
-		if      (col == 0) targetCamX = FlxG.width / 2 - 20;
-		else if (col == 1) targetCamX = FlxG.width / 2;
-		else if (col == 2) targetCamX = FlxG.width / 2 + 40;
-		if      (row == 0) targetCamY = FlxG.height / 2 - 20;
-		else if (row == 1) targetCamY = FlxG.height / 2 + 30;
-		else if (row >= 2) targetCamY = FlxG.height / 2 + 80;
-		camFollow.setPosition(targetCamX, targetCamY);
+		var targetCard = categoryCards.members[curSelected];
+		if (targetCard != null) {
+			var row = Std.int(curSelected / gridCols);
+			if (row < 2) {
+				targetScrollY = 0;
+			} else {
+				targetScrollY = (row - 1) * (cardHeight + cardSpacingY);
+			}
+		}
 		
-		if (optionsColor.exists(selectedOption))
-		{
-			var colors = optionsColor.get(selectedOption);
-			var newGradient = FlxGradient.createGradientFlxSprite(
-				FlxG.width, FlxG.height,
-				[colors[0], colors[1], colors[2], 0xFF0a0a15], 1, 135);
-			newGradient.alpha = 0; newGradient.scrollFactor.set(0, 0);
-			var oldGradient = bgGradient;
-			insert(members.indexOf(bgGradient), newGradient);
-			FlxTween.tween(oldGradient, {alpha: 0}, 0.5, {onComplete: function(t) remove(oldGradient)});
-			FlxTween.tween(newGradient, {alpha: 0.85}, 0.5);
-			bgGradient = newGradient;
-			selectionGlow.color = colors[0];
+		for (grad in gradientGroup.members) {
+			if (grad == null) continue;
+			FlxTween.cancelTweensOf(grad);
+			if (grad.ID == curSelected) {
+				FlxTween.tween(grad, {alpha: 0.85}, 0.5);
+				if (optionsColor.exists(selectedOption)) {
+					selectionGlow.color = optionsColor.get(selectedOption)[0];
+				}
+			} else if (grad.alpha > 0) {
+				FlxTween.tween(grad, {alpha: 0}, 0.5);
+			}
 		}
 		
 		FlxG.camera.shake(0.001, 0.06);
