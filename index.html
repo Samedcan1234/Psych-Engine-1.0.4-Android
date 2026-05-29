@@ -163,6 +163,98 @@ nav{
 }
 .modal-btn-sec:hover{border-color:var(--purple);color:var(--purple2)}
 
+
+/* ══════════════════════════════════ */
+/*  LEADERBOARD TABS                  */
+/* ══════════════════════════════════ */
+.lb-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 18px auto 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  max-width: 380px;
+}
+
+.lb-tab {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.lb-tab:hover {
+  color: var(--text);
+  background: rgba(168, 85, 247, 0.05);
+}
+
+.lb-tab.active {
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--purple2);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.08);
+}
+
+.lb-tab-icon {
+  font-size: 14px;
+}
+
+/* Achievement tablo sütunu */
+.ach-count {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ach-count .ach-star {
+  font-size: 11px;
+}
+
+.ach-badge {
+  font-size: 7px;
+  letter-spacing: 1px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.ach-tier-gold {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--gold);
+}
+
+.ach-tier-purple {
+  background: rgba(168, 85, 247, 0.15);
+  color: var(--purple2);
+}
+
+.ach-tier-green {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--green);
+}
+
+.ach-tier-default {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--muted);
+}
+
 /* ═══════════════════════════════════════
    PROFILE SETTINGS MODAL
    ═══════════════════════════════════════ */
@@ -881,6 +973,14 @@ footer{
     <div class="lb-hero-bg"></div>
     <div class="lb-hero-title">GLOBAL <span>RANKING</span></div>
     <div class="lb-hero-sub">TOP PLAYERS — EN İYİ OYUNCULAR</div>
+	<div class="lb-tabs">
+	  <button class="lb-tab active" onclick="switchLBTab('score')">
+		<span class="lb-tab-icon">🏆</span> ULTRA POINTS
+	  </button>
+	  <button class="lb-tab" onclick="switchLBTab('achievements')">
+		<span class="lb-tab-icon">⭐</span> BAŞARIMLAR
+	  </button>
+	</div>
     <div class="lb-stats-row">
       <div class="lb-stat"><div class="num" id="lb-p">—</div><div class="lbl">PLAYERS</div></div>
       <div class="lb-stat"><div class="num" id="lb-s">—</div><div class="lbl">SONGS PLAYED</div></div>
@@ -927,10 +1027,20 @@ footer{
   </div>
   <div class="lb-wrap">
     <div id="lb-loading" class="state-msg"><div class="spinner"></div>LOADING...</div>
-    <table class="lb-table" id="lb-table" style="display:none">
-      <thead><tr><th>#</th><th>PLAYER</th><th>COUNTRY</th><th>LEVEL</th><th>ULTRA POINTS</th><th>BEST ACC</th><th>SONGS</th></tr></thead>
-      <tbody id="lb-body"></tbody>
-    </table>
+	<table class="lb-table" id="lb-table" style="display:none">
+	  <thead id="lb-thead">
+		<tr>
+		  <th>#</th>
+		  <th>PLAYER</th>
+		  <th>COUNTRY</th>
+		  <th>LEVEL</th>
+		  <th>ULTRA POINTS</th>
+		  <th>BEST ACC</th>
+		  <th>SONGS</th>
+		</tr>
+	  </thead>
+	  <tbody id="lb-body"></tbody>
+	</table>
     <div id="lb-empty" class="state-msg" style="display:none">NO PLAYERS YET</div>
   </div>
 </div>
@@ -1001,6 +1111,212 @@ function buildCountryOptions() {
     const el = document.getElementById(id);
     if (el) el.innerHTML = opts;
   });
+}
+
+// ... mevcut tüm kodlar ...
+// buildCountryOptions, fetchLB, renderPodium, filterTable, renderTable vs. hepsi yukarıda
+
+// ══════════════════════════════════════════════════
+//  ACHIEVEMENT LEADERBOARD (en alta ekle)
+// ══════════════════════════════════════════════════
+
+let currentLBTab = 'score';
+let achData = [];
+
+function switchLBTab(tab) {
+  currentLBTab = tab;
+
+  document.querySelectorAll('.lb-tab').forEach(btn => btn.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  const thead = document.getElementById('lb-thead');
+
+  if (tab === 'score') {
+    thead.innerHTML = `<tr>
+      <th>#</th><th>PLAYER</th><th>COUNTRY</th>
+      <th>LEVEL</th><th>ULTRA PTS</th><th>ACCURACY</th><th>SONGS</th>
+    </tr>`;
+    renderPodium(allData);
+    filterTable();
+    updateStatsRow(allData);
+  } else {
+    thead.innerHTML = `<tr>
+      <th>#</th><th>PLAYER</th><th>LEVEL</th>
+      <th>ACHIEVEMENTS</th><th>TIER</th><th>LAST UNLOCK</th>
+    </tr>`;
+    fetchAchievementLB();
+  }
+}
+
+async function fetchAchievementLB() {
+  try {
+    document.getElementById('lb-loading').style.display = 'flex';
+    document.getElementById('lb-table').style.display   = 'none';
+    document.getElementById('lb-empty').style.display   = 'none';
+    document.getElementById('podium').style.display      = 'none';
+
+    const r = await fetch(
+      `${SB_URL}/rest/v1/achievement_leaderboard?select=*&order=achievement_count.desc&limit=100`,
+      { headers: { apikey: SB_KEY, Accept: 'application/json' } }
+    );
+    const data = await r.json();
+    achData = Array.isArray(data) ? data.filter(p => p.achievement_count > 0) : [];
+
+    renderAchPodium(achData);
+    renderAchTable(achData);
+    updateAchStats(achData);
+
+  } catch(e) {
+    document.getElementById('lb-loading').innerHTML =
+      '<p style="color:#f87171;letter-spacing:2px">CONNECTION ERROR</p>';
+  }
+}
+
+function updateStatsRow(data) {
+  document.getElementById('lb-p').textContent =
+    data.length.toLocaleString();
+  document.getElementById('lb-s').textContent =
+    data.reduce((a, p) => a + (p.songs_played || 0), 0).toLocaleString();
+  const topUP = data.length ? parseFloat(data[0].ultra_points || 0).toFixed(1) : '0';
+  document.getElementById('lb-t').textContent = topUP + ' UP';
+
+  document.getElementById('lb-s').parentElement.querySelector('.lbl').textContent = 'SONGS PLAYED';
+  document.getElementById('lb-t').parentElement.querySelector('.lbl').textContent = 'TOP ULTRA PTS';
+}
+
+function updateAchStats(data) {
+  const totalPlayers = data.length;
+  const totalAch = data.reduce((a, p) => a + (p.achievement_count || 0), 0);
+  const topCount = data.length ? data[0].achievement_count || 0 : 0;
+
+  document.getElementById('lb-p').textContent = totalPlayers.toLocaleString();
+  document.getElementById('lb-s').textContent = totalAch.toLocaleString();
+  document.getElementById('lb-t').textContent = topCount;
+
+  document.getElementById('lb-s').parentElement.querySelector('.lbl').textContent = 'TOTAL UNLOCKED';
+  document.getElementById('lb-t').parentElement.querySelector('.lbl').textContent = 'TOP PLAYER';
+}
+
+function getAchTier(count) {
+  if (count >= 50) return { label: 'MASTER',  cls: 'ach-tier-gold' };
+  if (count >= 25) return { label: 'VETERAN', cls: 'ach-tier-purple' };
+  if (count >= 10) return { label: 'SKILLED', cls: 'ach-tier-green' };
+  return                   { label: '',        cls: 'ach-tier-default' };
+}
+
+function renderAchPodium(data) {
+  if (data.length < 1) {
+    document.getElementById('podium').style.display = 'none';
+    return;
+  }
+  document.getElementById('podium').style.display = 'flex';
+
+  const fill = (n, p) => {
+    const card = document.getElementById('pod' + n);
+    if (!p || !p.achievement_count) { card.style.display = 'none'; return; }
+    card.style.display = '';
+
+    const init = (p.username || '?').substring(0, 2).toUpperCase();
+
+    const avEl = document.getElementById('pod' + n + '-av');
+    if (p.avatar_url && p.player_id) {
+      const url = getAvatarUrl(p.player_id, p.avatar_url);
+      avEl.innerHTML = `<img src="${url}" alt="${init}"
+        style="width:100%;height:100%;object-fit:cover;border-radius:50%"
+        onerror="this.outerHTML='${init}'">`;
+    } else {
+      avEl.textContent = init;
+    }
+
+    const nameEl = document.getElementById('pod' + n + '-name');
+    const tier = getAchTier(p.achievement_count);
+    if (tier.label) {
+      nameEl.innerHTML = `${p.username || 'Unknown'}<br>
+        <span class="ach-badge ${tier.cls}">${tier.label}</span>`;
+    } else {
+      nameEl.textContent = p.username || 'Unknown';
+    }
+
+    document.getElementById('pod' + n + '-flag').textContent = '⭐';
+    document.getElementById('pod' + n + '-score').textContent =
+      p.achievement_count + ' Achievement';
+    document.getElementById('pod' + n + '-meta').textContent =
+      'Lv.' + (p.level || 1);
+  };
+
+  fill(1, data[0]);
+  fill(2, data[1] || null);
+  fill(3, data[2] || null);
+}
+
+function renderAchTable(data) {
+  document.getElementById('lb-loading').style.display = 'none';
+
+  if (!data.length) {
+    document.getElementById('lb-empty').style.display = 'flex';
+    document.getElementById('lb-table').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('lb-empty').style.display = 'none';
+  document.getElementById('lb-table').style.display = 'table';
+
+  const uid = localStorage.getItem('peu_uid');
+
+  document.getElementById('lb-body').innerHTML = data.map((p, i) => {
+    const rank = i + 1;
+    if (rank <= 3) return '';
+
+    const init = (p.username || '?').substring(0, 2).toUpperCase();
+    const isMe = uid && p.player_id === uid;
+    const tier = getAchTier(p.achievement_count);
+
+    const avHtml = (p.avatar_url && p.player_id)
+      ? `<img src="${getAvatarUrl(p.player_id, p.avatar_url)}" alt="${init}"
+           style="width:100%;height:100%;object-fit:cover;border-radius:50%"
+           onerror="this.outerHTML='${init}'">`
+      : init;
+
+    const roleCls = getRoleCls(p.role);
+    const badgeHtml = (p.badge && p.role !== 'player')
+      ? `<span class="role-badge ${roleCls}">${p.badge}</span>` : '';
+
+    const tierHtml = tier.label
+      ? `<span class="ach-badge ${tier.cls}">${tier.label}</span>` : '';
+
+    const rankCls = p.role === 'founder' ? 'rank-1' :
+                    p.role === 'admin' ? 'rank-2' :
+                    rank === 4 ? 'rank-3' : 'rank-other';
+    const avCls = p.role === 'founder' ? 'av g1' :
+                  p.role === 'admin' ? 'av g2' : 'av';
+
+    const meStyle = isMe ? 'background:rgba(168,85,247,.06);' : '';
+    const meLabel = isMe
+      ? '<span style="font-size:9px;color:var(--purple2);opacity:.7"> (YOU)</span>' : '';
+
+    const lastDate = p.last_unlock_at
+      ? new Date(p.last_unlock_at).toLocaleDateString('tr-TR', {
+          day: '2-digit', month: 'short'
+        })
+      : '—';
+
+    return `<tr style="${meStyle}">
+      <td><span class="rank-cell ${rankCls}">${rank}</span></td>
+      <td><div class="player-cell">
+        <div class="${avCls}">${avHtml}</div>
+        <div>
+          <span class="pname">${p.username || 'Unknown'}${meLabel}</span>
+          ${badgeHtml}
+        </div>
+      </div></td>
+      <td><span class="lvl">Lv.${p.level || 1}</span></td>
+      <td><span class="ach-count">
+        <span class="ach-star">⭐</span> ${p.achievement_count}
+      </span></td>
+      <td>${tierHtml}</td>
+      <td><span class="songs">${lastDate}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════

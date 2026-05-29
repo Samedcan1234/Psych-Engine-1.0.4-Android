@@ -22,7 +22,6 @@ class LanguageSelectState extends MusicBeatState {
         var bg = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xFF08080f);
         add(bg);
 
-        // Sol vurgu çizgisi
         var accent = new FlxSprite(0, FlxG.height / 2 - 60).makeGraphic(4, 120, 0xFFc084fc);
         add(accent);
 
@@ -38,21 +37,18 @@ class LanguageSelectState extends MusicBeatState {
         sub.color = 0xFF5a5a7a;
         add(sub);
 
-        // Yukarı ok
         var upTxt = new FlxText(0, FlxG.height / 2 - 130, FlxG.width, "▲", 28);
         upTxt.font = Paths.font("vcr.ttf");
         upTxt.alignment = CENTER;
         upTxt.color = 0xFFc084fc;
         add(upTxt);
 
-        // Aşağı ok
         var downTxt = new FlxText(0, FlxG.height / 2 + 90, FlxG.width, "▼", 28);
         downTxt.font = Paths.font("vcr.ttf");
         downTxt.alignment = CENTER;
         downTxt.color = 0xFFc084fc;
         add(downTxt);
 
-        // Bayraklar ve isimler
         for (i in 0...LANGUAGES.length) {
             var flag = new FlxSprite(FlxG.width / 2 - 75, FlxG.height / 2 - 55);
             try {
@@ -60,14 +56,15 @@ class LanguageSelectState extends MusicBeatState {
                 flag.setGraphicSize(150, 100);
                 flag.updateHitbox();
             } catch(e) {
-                // Placeholder — renkli dikdörtgen
+
                 flag.makeGraphic(150, 100, 0xFF1e1e3a);
                 var ph = new FlxText(FlxG.width / 2 - 75, FlxG.height / 2 - 20, 150, LANGUAGES[i].name.substr(0, 2), 28);
                 ph.font = Paths.font("vcr.ttf");
                 ph.alignment = CENTER;
                 ph.color = 0xFFc084fc;
                 ph.visible = (i == 0);
-                flagSprites.push(flag); // placeholder için de ekle
+                flagSprites.push(flag); 
+
                 add(flag); add(ph);
                 continue;
             }
@@ -84,7 +81,6 @@ class LanguageSelectState extends MusicBeatState {
             add(nameTxt);
         }
 
-        // Onayla butonu
         var confirmBg = new FlxSprite(FlxG.width / 2 - 150, FlxG.height / 2 + 150).makeGraphic(300, 44, 0xFFc084fc);
         add(confirmBg);
         var confirmTxt = new FlxText(FlxG.width / 2 - 150, FlxG.height / 2 + 162, 300, "ONAYLA / CONFIRM", 14);
@@ -93,7 +89,6 @@ class LanguageSelectState extends MusicBeatState {
         confirmTxt.color = 0xFFffffff;
         add(confirmTxt);
 
-        // Mevcut dili bul
         for (i in 0...LANGUAGES.length)
             if (LANGUAGES[i].id == ClientPrefs.data.language) { selectedIndex = i; break; }
 

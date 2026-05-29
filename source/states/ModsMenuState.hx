@@ -27,15 +27,16 @@ import flixel.tweens.FlxEase;
 
 class ModsMenuState extends MusicBeatState
 {
-	// ═══════════════════════════════════════════════════════
-	// 🎮 ORİJİNAL SİSTEM DEĞİŞKENLERİ
-	// ═══════════════════════════════════════════════════════
+
 	var bg:FlxSprite;
 	var icon:FlxSprite;
 	var modName:Alphabet;
 	var modDesc:FlxText;
 	var modRestartText:FlxText;
 	var modsList:ModsList = null;
+	
+	var onlineBtnBg:FlxSprite;
+	var onlineBtnText:FlxText;
 
 	var buttonReload:MenuButton;
 	var buttonEnableAll:MenuButton;
@@ -67,9 +68,6 @@ class ModsMenuState extends MusicBeatState
 	var holdTime:Float = 0;
 	var exiting:Bool = false;
 
-	// ═══════════════════════════════════════════════════════
-	// 🌌 MODERN UI — ARKA PLAN
-	// ═══════════════════════════════════════════════════════
 	var bgBase:FlxSprite;
 	var bgGradient:FlxSprite;
 	var bgGradientDynamic:FlxSprite;
@@ -78,18 +76,12 @@ class ModsMenuState extends MusicBeatState
 	var floatingShapes:Array<FlxSprite> = [];
 	var bgVignette:FlxSprite;
 
-	// ═══════════════════════════════════════════════════════
-	// 🔝 HEADER
-	// ═══════════════════════════════════════════════════════
 	var headerPanel:FlxSprite;
 	var headerGlow:FlxSprite;
 	var headerTitle:FlxText;
 	var headerSubtitle:FlxText;
 	var headerBreadcrumb:FlxText;
 
-	// ═══════════════════════════════════════════════════════
-	// 🎭 SOL VİTRİN PANELİ
-	// ═══════════════════════════════════════════════════════
 	var showcasePanel:FlxSprite;
 	var showcasePanelGlow:FlxSprite;
 	var showcasePanelBorder:FlxSprite;
@@ -105,9 +97,6 @@ class ModsMenuState extends MusicBeatState
 	var restartBadgeText:FlxText;
 	var modCountText:FlxText;
 
-	// ═══════════════════════════════════════════════════════
-	// 📋 SAĞ PANEL — MOD LİSTESİ
-	// ═══════════════════════════════════════════════════════
 	var rightPanel:FlxSprite;
 	var rightPanelGlow:FlxSprite;
 	var rightPanelBorder:FlxSprite;
@@ -116,15 +105,9 @@ class ModsMenuState extends MusicBeatState
 	var selectionBar:FlxSprite;
 	var selectionBarGlow:FlxSprite;
 
-	// ═══════════════════════════════════════════════════════
-	// 🎮 KONTROL İPUÇLARI
-	// ═══════════════════════════════════════════════════════
 	var controlHintsPanel:FlxSprite;
 	var controlHintsText:FlxText;
 
-	// ═══════════════════════════════════════════════════════
-	// 🎨 ANİMASYON TİMERLARI
-	// ═══════════════════════════════════════════════════════
 	var animTimer:Float  = 0;
 	var pulseTimer:Float = 0;
 	var waveTimer:Float  = 0;
@@ -133,7 +116,6 @@ class ModsMenuState extends MusicBeatState
 
 	var currentAccentColor:FlxColor = 0xFF665AFF;
 
-	// Layout sabitleri
 	static inline var HEADER_H:Int    = 100;
 	static inline var RIGHT_W:Int     = 420;
 	static inline var ITEM_H:Int      = 82;
@@ -141,11 +123,9 @@ class ModsMenuState extends MusicBeatState
 	static inline var DOCK_H:Int      = 90;
 	static inline var LIST_TOP:Int    = HEADER_H + 48;
 
-	// Mobil için dock yüksekliği — touchpad altta yer kaplayacağından biraz daha yüksek
 	var effectiveDockH(get, never):Int;
 	function get_effectiveDockH():Int return controls.mobileC ? DOCK_H + 80 : DOCK_H;
 
-	// Manuel liste scroll
 	var listScrollOffset:Float  = 0;
 	var listScrollTarget:Float  = 0;
 
@@ -155,9 +135,6 @@ class ModsMenuState extends MusicBeatState
 		super();
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🏗️ CREATE
-	// ═══════════════════════════════════════════════════════
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -166,35 +143,26 @@ class ModsMenuState extends MusicBeatState
 		modsList = Mods.parseList();
 		Mods.loadTopMod();
 
-		// Mobil çıkış butonu etiketi
 		var daButton:String = controls.mobileC ? 'B' : 'BACKSPACE';
 
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Mod Merkezi", null);
 		#end
 
-		// ── Arka Plan ────────────────────────────────────────
 		createBackground();
 
-		// ── Header ───────────────────────────────────────────
 		createHeader();
 
-		// ── Vitrin (Sol) ─────────────────────────────────────
 		createShowcasePanel();
 
-		// ── Mod Listesi (Sağ) ─────────────────────────────────
 		createRightPanel();
 
-		// ── Üst Aksiyon Butonları ─────────────────────────────
 		createTopButtons();
 
-		// ── Dock Butonları ────────────────────────────────────
 		createDockButtons();
 
-		// ── Kontrol İpuçları ─────────────────────────────────
 		createControlHints(daButton);
 
-		// ── Mod Grubu Yükle ───────────────────────────────────
 		modsGroup = new FlxTypedGroup<ModItem>();
 		for (i => mod in modsList.all)
 		{
@@ -210,7 +178,6 @@ class ModsMenuState extends MusicBeatState
 		centerMod = curSelectedMod;
 		add(modsGroup);
 
-		// ── Mod yok durumu ────────────────────────────────────
 		if (modsList.all.length < 1)
 		{
 			buttonDisableAll.visible = buttonDisableAll.enabled = false;
@@ -225,12 +192,11 @@ class ModsMenuState extends MusicBeatState
 			changeSelectedMod();
 			playEntranceAnimation();
 			_lastControllerMode = controls.controllerMode;
-			// Mobil: sadece geri butonu yeterli (mod yok ekranında)
+
 			addTouchPad('NONE', 'B');
 			return super.create();
 		}
 
-		// ── Icon showcase ─────────────────────────────────────
 		icon = new FlxSprite(0, 0);
 		icon.antialiasing = ClientPrefs.data.antialiasing;
 		add(icon);
@@ -251,26 +217,55 @@ class ModsMenuState extends MusicBeatState
 		changeSelectedMod();
 		playEntranceAnimation();
 
-		// ── Mobil TouchPad ────────────────────────────────────
-		// UP_DOWN: mod listesinde gezinme; B: geri
-		// TouchPad'i listenin üstüne değil, ekranın altına sabitliyoruz.
-		// Sağ panelin dışına sığsın diye x offseti ayarlıyoruz.
+		var onlineBtnText = new FlxText(onlineBtnBg.x, onlineBtnBg.y + 10, 185, "🌐 Online Mods");
+		onlineBtnText.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, CENTER,
+			FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		add(onlineBtnText);
+
 		addTouchPad('UP_DOWN', 'B');
 		if (controls.mobileC)
 		{
 			touchPad.alpha = 0.35;
-			// Touchpad'i sol panel (vitrin) alanında ortala, alta yapıştır
+
 			var padW:Float = FlxG.width - RIGHT_W;
 			touchPad.x = (padW - touchPad.width) / 2;
 			touchPad.y = FlxG.height - touchPad.height - 4;
 		}
 
 		super.create();
+		
+		onlineBtnBg = new FlxSprite();
+		onlineBtnBg.makeGraphic(200, 44, FlxColor.TRANSPARENT);
+
+		// Yuvarlak kenarlı gradient buton çiz
+		flixel.util.FlxSpriteUtil.drawRoundRect(
+			onlineBtnBg, 0, 0, 200, 44, 12, 12,
+			0xFF0D9488,  // teal renk
+			{thickness: 2, color: 0xFF14B8A6}
+		);
+
+		onlineBtnBg.x = 20;
+		onlineBtnBg.y = FlxG.height - effectiveDockH - 54; // dock'un hemen üstü
+		onlineBtnBg.alpha = 0.92;
+		onlineBtnBg.scrollFactor.set(0, 0);
+		add(onlineBtnBg);
+
+		onlineBtnText = new FlxText(
+			onlineBtnBg.x,
+			onlineBtnBg.y + 12,
+			200,
+			"🌐 Online Mods"
+		);
+		onlineBtnText.setFormat(
+			Paths.font("vcr.ttf"), 16,
+			FlxColor.WHITE, CENTER,
+			FlxTextBorderStyle.OUTLINE, FlxColor.BLACK
+		);
+		onlineBtnText.borderSize = 1.5;
+		onlineBtnText.scrollFactor.set(0, 0);
+		add(onlineBtnText);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🌌 ARKA PLAN
-	// ═══════════════════════════════════════════════════════
 	function createBackground()
 	{
 		bgBase = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, 0xFF080812);
@@ -349,9 +344,6 @@ class ModsMenuState extends MusicBeatState
 		add(bgVignette);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🔝 HEADER
-	// ═══════════════════════════════════════════════════════
 	function createHeader()
 	{
 		headerPanel = new FlxSprite(0, -HEADER_H).makeGraphic(FlxG.width, HEADER_H, 0xEE000000);
@@ -394,9 +386,6 @@ class ModsMenuState extends MusicBeatState
 		add(modCountText);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🎭 VİTRİN PANELİ (Sol)
-	// ═══════════════════════════════════════════════════════
 	function createShowcasePanel()
 	{
 		var panelW:Float = FlxG.width - RIGHT_W;
@@ -438,7 +427,6 @@ class ModsMenuState extends MusicBeatState
 		descBorder.scrollFactor.set(0, 0);
 		add(descBorder);
 
-		// Rozetler
 		enabledBadge = new FlxSprite(14, HEADER_H + 14).makeGraphic(110, 26, 0xFF10B981);
 		enabledBadge.alpha = 0.9;
 		enabledBadge.scrollFactor.set(0, 0);
@@ -474,9 +462,6 @@ class ModsMenuState extends MusicBeatState
 		add(showcasePanelBorder);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 📋 SAĞ PANEL — MOD LİSTESİ
-	// ═══════════════════════════════════════════════════════
 	function createRightPanel()
 	{
 		var rx:Float = FlxG.width - RIGHT_W;
@@ -521,9 +506,6 @@ class ModsMenuState extends MusicBeatState
 		add(selectionBar);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🔘 ÜST AKSİYON BUTONLARI
-	// ═══════════════════════════════════════════════════════
 	function createTopButtons()
 	{
 		var rx:Float = FlxG.width - RIGHT_W;
@@ -574,9 +556,6 @@ class ModsMenuState extends MusicBeatState
 		checkToggleButtons();
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🎛️ DOCK BUTONLARI (Alt)
-	// ═══════════════════════════════════════════════════════
 	function createDockButtons()
 	{
 		var rx:Float = FlxG.width - RIGHT_W;
@@ -603,22 +582,18 @@ class ModsMenuState extends MusicBeatState
 		var startX:Float = rx + (RIGHT_W - totalW) / 2;
 		var btnY:Float   = dockY + (DOCK_H - btnSize) / 2;
 
-		// En Üste Taşı
 		var b = new MenuButton(startX, btnY, btnSize, btnSize, Paths.image('modsMenuButtons'), function() moveModToPosition(0), 54, 54);
 		b.icon.animation.add('icon', [0]); b.icon.animation.play('icon', true);
 		b.scrollFactor.set(0, 0); add(b); buttons.push(b);
 
-		// Yukarı Taşı
 		b = new MenuButton(startX + (btnSize + gap), btnY, btnSize, btnSize, Paths.image('modsMenuButtons'), function() moveModToPosition(curSelectedMod - 1), 54, 54);
 		b.icon.animation.add('icon', [1]); b.icon.animation.play('icon', true);
 		b.scrollFactor.set(0, 0); add(b); buttons.push(b);
 
-		// Aşağı Taşı
 		b = new MenuButton(startX + (btnSize + gap) * 2, btnY, btnSize, btnSize, Paths.image('modsMenuButtons'), function() moveModToPosition(curSelectedMod + 1), 54, 54);
 		b.icon.animation.add('icon', [2]); b.icon.animation.play('icon', true);
 		b.scrollFactor.set(0, 0); add(b); buttons.push(b);
 
-		// Ayarlar
 		settingsButton = new MenuButton(startX + (btnSize + gap) * 3, btnY, btnSize, btnSize, Paths.image('modsMenuButtons'), function() {
 			var curMod:ModItem = modsGroup.members[curSelectedMod];
 			if (curMod != null && curMod.settings != null && curMod.settings.length > 0)
@@ -627,7 +602,6 @@ class ModsMenuState extends MusicBeatState
 		settingsButton.icon.animation.add('icon', [3]); settingsButton.icon.animation.play('icon', true);
 		settingsButton.scrollFactor.set(0, 0); add(settingsButton); buttons.push(settingsButton);
 
-		// Aç / Kapat
 		var toggleBtn = new MenuButton(startX + (btnSize + gap) * 4, btnY, btnSize, btnSize, Paths.image('modsMenuButtons'), function() {
 			var curMod:ModItem = modsGroup.members[curSelectedMod];
 			var mod:String = curMod.folder;
@@ -652,9 +626,6 @@ class ModsMenuState extends MusicBeatState
 		if (modsList.all.length < 1) { for (btn in buttons) btn.enabled = false; toggleBtn.focusChangeCallback = null; }
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🎮 KONTROL İPUÇLARI
-	// ═══════════════════════════════════════════════════════
 	function createControlHints(daButton:String)
 	{
 		controlHintsPanel = new FlxSprite(0, FlxG.height - 28).makeGraphic(FlxG.width - RIGHT_W, 28, 0xAA000000);
@@ -671,9 +642,6 @@ class ModsMenuState extends MusicBeatState
 		add(controlHintsText);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🎬 GİRİŞ ANİMASYONU
-	// ═══════════════════════════════════════════════════════
 	function playEntranceAnimation()
 	{
 		FlxTween.tween(headerPanel, {y: 0}, 0.75, {ease: FlxEase.expoOut, startDelay: 0.05});
@@ -693,12 +661,9 @@ class ModsMenuState extends MusicBeatState
 		FlxG.camera.fade(FlxColor.BLACK, 0.5, true);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🔄 UPDATE
-	// ═══════════════════════════════════════════════════════
 	override function update(elapsed:Float)
 	{
-		// ── ESC / Geri ────────────────────────────────────────
+
 		if (controls.BACK && hoveringOnMods && !exiting)
 		{
 			exiting = true;
@@ -725,8 +690,22 @@ class ModsMenuState extends MusicBeatState
 			FlxG.mouse.visible = false;
 			return;
 		}
+		
+		if (onlineBtnBg != null) {
+			if (FlxG.mouse.overlaps(onlineBtnBg)) {
+				onlineBtnBg.alpha = 1.0;
+				onlineBtnText.alpha = 1.0;
+				
+				if (FlxG.mouse.justPressed && !exiting) {
+					FlxG.sound.play(Paths.sound('confirmMenu'));
+					FlxG.switchState(() -> new states.multiplayer.OnlineModsState());
+				}
+			} else {
+				onlineBtnBg.alpha = 0.75;
+				onlineBtnText.alpha = 0.85;
+			}
+		}
 
-		// ── Mouse takibi (sadece mobil olmayan cihazda) ───────
 		if (!controls.mobileC)
 		{
 			if (Math.abs(FlxG.mouse.deltaX) > 10 || Math.abs(FlxG.mouse.deltaY) > 10)
@@ -741,14 +720,12 @@ class ModsMenuState extends MusicBeatState
 			}
 		}
 
-		// ── Animasyon timerları ───────────────────────────────
 		animTimer  += elapsed;
 		pulseTimer += elapsed;
 		waveTimer  += elapsed * 2;
 		floatTimer += elapsed * 1.5;
 		glowTimer  += elapsed * 3;
 
-		// ── Orb animasyonları ─────────────────────────────────
 		for (i in 0...bgOrbs.length)
 		{
 			var orb = bgOrbs[i];
@@ -758,7 +735,6 @@ class ModsMenuState extends MusicBeatState
 			orb.angle += elapsed * (3 + i * 2);
 		}
 
-		// ── Floating shapes ───────────────────────────────────
 		for (i in 0...floatingShapes.length)
 		{
 			var shape = floatingShapes[i];
@@ -768,15 +744,12 @@ class ModsMenuState extends MusicBeatState
 			shape.angle += elapsed * (6 + i);
 		}
 
-		// ── Glow pulse ────────────────────────────────────────
 		if (headerGlow != null)       headerGlow.alpha       = 0.5 + Math.sin(waveTimer) * 0.2;
 		if (selectionBarGlow != null) selectionBarGlow.alpha = 0.06 + Math.sin(glowTimer) * 0.03;
 		if (iconGlowSprite != null)   iconGlowSprite.alpha   = 0.06 + Math.sin(pulseTimer * 1.5) * 0.03;
 
-		// ── Mod listesi scroll ────────────────────────────────
 		updateListScroll(elapsed);
 
-		// ── Input sistemi ─────────────────────────────────────
 		if (controls.UI_DOWN_R || controls.UI_UP_R) holdTime = 0;
 
 		if (modsList.all.length > 0)
@@ -786,7 +759,7 @@ class ModsMenuState extends MusicBeatState
 			var lastMode = hoveringOnMods;
 			if (modsList.all.length > 1)
 			{
-				// ── Mobil: dokunmatik scroll ──────────────────
+
 				if (controls.mobileC && hoveringOnMods)
 				{
 					var shiftMult:Int = 1;
@@ -801,7 +774,6 @@ class ModsMenuState extends MusicBeatState
 					}
 				}
 
-				// ── PC/Konsol: mouse + klavye ─────────────────
 				if (!controls.mobileC && FlxG.mouse.justPressed)
 				{
 					for (i in centerMod-4...centerMod+5)
@@ -894,7 +866,7 @@ class ModsMenuState extends MusicBeatState
 			{
 				if (hoveringOnMods)
 				{
-					// Sağa geç: sadece PC/Konsol modunda (mobilde butonlara dokunarak erişilir)
+
 					if (!controls.mobileC && controls.UI_RIGHT_P)
 					{
 						hoveringOnMods = false;
@@ -949,9 +921,6 @@ class ModsMenuState extends MusicBeatState
 		super.update(elapsed);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 📜 LİSTE SCROLL
-	// ═══════════════════════════════════════════════════════
 	function updateListScroll(elapsed:Float)
 	{
 		if (modsGroup == null || modsGroup.members.length == 0) return;
@@ -976,9 +945,6 @@ class ModsMenuState extends MusicBeatState
 		selectionBarGlow.y = selBaseY - 2;
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🔄 ITEM POZİSYONLARI
-	// ═══════════════════════════════════════════════════════
 	function updateItemPositions()
 	{
 		var rx:Float = FlxG.width - RIGHT_W;
@@ -1004,9 +970,6 @@ class ModsMenuState extends MusicBeatState
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// 🎨 TEMA RENGİ GÜNCELLEMESİ
-	// ═══════════════════════════════════════════════════════
 	function updateAccentColor(newColor:FlxColor)
 	{
 		currentAccentColor = newColor;
@@ -1030,9 +993,6 @@ class ModsMenuState extends MusicBeatState
 		if (selectionBar != null) FlxTween.color(selectionBar, 0.3, selectionBar.color, newColor);
 	}
 
-	// ═══════════════════════════════════════════════════════
-	// ORİJİNAL FONKSİYONLAR
-	// ═══════════════════════════════════════════════════════
 	function changeSelectedButton(add:Int = 0)
 	{
 		var max = buttons.length - 1;
@@ -1213,7 +1173,7 @@ class ModsMenuState extends MusicBeatState
 			if (fileStr.length > 0) fileStr += '\n';
 			fileStr += '$mod|${modsList.disabled.contains(mod) ? "0" : "1"}';
 		}
-		// Android için StorageUtil, diğer platformlar için normal yol
+
 		var path:String = #if android StorageUtil.getExternalStorageDirectory() + #else Sys.getCwd() + #end 'modsList.txt';
 		File.saveContent(path, fileStr);
 		Mods.parseList();
@@ -1221,9 +1181,6 @@ class ModsMenuState extends MusicBeatState
 	}
 }
 
-// ═══════════════════════════════════════════════════════════
-// 📦 MOD LİSTE ÖĞESİ
-// ═══════════════════════════════════════════════════════════
 class ModItem extends FlxSpriteGroup
 {
 	public var selectBg:FlxSprite;
@@ -1254,18 +1211,15 @@ class ModItem extends FlxSpriteGroup
 			try { settings = tjson.TJSON.parse(File.getContent(path)); } catch(e:Dynamic) {}
 		}
 
-		// Seçim arka planı
 		selectBg = FlxGradient.createGradientFlxSprite(400, 78, [0x33FFFFFF, 0x11FFFFFF], 1, 0);
 		selectBg.alpha = 0.18;
 		selectBg.visible = false;
 		add(selectBg);
 
-		// Sol kenar vurgu
 		accentBar = new FlxSprite(0, 4).makeGraphic(4, 70, FlxColor.WHITE);
 		accentBar.alpha = 0;
 		add(accentBar);
 
-		// Alt border
 		var bottomLine = new FlxSprite(4, 78).makeGraphic(396, 2, 0x22FFFFFF);
 		add(bottomLine);
 
@@ -1330,9 +1284,6 @@ class ModItem extends FlxSpriteGroup
 	}
 }
 
-// ═══════════════════════════════════════════════════════════
-// 🔘 MENÜ BUTONU
-// ═══════════════════════════════════════════════════════════
 class MenuButton extends FlxSpriteGroup
 {
 	public var bg:FlxSprite;
@@ -1392,7 +1343,6 @@ class MenuButton extends FlxSpriteGroup
 		super.update(elapsed);
 		if (!enabled) { onFocus = false; return; }
 
-		// ── Mobil: dokunmatik ─────────────────────────────────
 		if (Controls.instance.mobileC)
 		{
 			if (!ignoreCheck)
@@ -1406,7 +1356,7 @@ class MenuButton extends FlxSpriteGroup
 
 			if (_needACheck) { _needACheck = false; setButtonVisibility(TouchUtil.overlaps(this)); }
 		}
-		// ── PC/Konsol: mouse ──────────────────────────────────
+
 		else
 		{
 			if (!ignoreCheck && !Controls.instance.controllerMode && (FlxG.mouse.justPressed || FlxG.mouse.justMoved) && FlxG.mouse.visible)
@@ -1457,3 +1407,4 @@ class MenuButton extends FlxSpriteGroup
 		if (focusChangeCallback != null) focusChangeCallback(focusVal);
 	}
 }
+

@@ -4,7 +4,7 @@ import backend.WeekData;
 import backend.Highscore;
 import backend.Song;
 import backend.ThemeManager;
-import backend.ClientPrefs; // ClientPrefs import'unu ekle
+import backend.ClientPrefs; 
 
 import objects.HealthIcon;
 import objects.MusicPlayer;
@@ -45,7 +45,6 @@ import sys.FileSystem;
 import sys.io.File;
 #end
 
-
 class FreeplayState extends MusicBeatState
 {
 	public static var instance:FreeplayState;
@@ -84,7 +83,8 @@ class FreeplayState extends MusicBeatState
 
 	var tabBar:FlxSprite;
 	var tabButtons:Array<FlxSprite> = [];
-	var tabTexts:Array<FlxText> = []; // Bu array'e ihtiyacımız var, createTabBar'da dolduracağız
+	var tabTexts:Array<FlxText> = []; 
+
 	var tabIndicator:FlxSprite;
 	var tabGlows:Array<FlxSprite> = [];
 	var categories:Array<String> = ['All', 'Favorites', 'Last Played', 'Hidden'];
@@ -201,7 +201,8 @@ class FreeplayState extends MusicBeatState
 		'All'         => '📂',
 		'Favorites'   => '⭐',
 		'Last Played' => '🕐',
-		'Hidden'      => '👁️' // 'Hiddens' yerine 'Hidden' yaptım consistency için
+		'Hidden'      => '👁️' 
+
 	];
 
 	var showcaseIconTargetY:Float = 0;
@@ -472,7 +473,6 @@ class FreeplayState extends MusicBeatState
 			add(btn);
 			tabButtons.push(btn);
 
-			// Kategori yazılarını Language.getPhrase ile ekle
 			var categoryKey:String = 'freeplay_category_' + categories[i].toLowerCase().replace(' ', '_');
 			var categoryTextStr:String = Language.getPhrase(categoryKey, categories[i]);
 
@@ -1390,8 +1390,7 @@ class FreeplayState extends MusicBeatState
 			menuAccuracyDisplay.text = Language.getPhrase('freeplay_accuracy_label',    'Accuracy: ') + CoolUtil.floorDecimal(intendedRating * 100, 2) + "%";
 			loadSongBackground(songs[curSelected].songName);
 		}
-		
-		// Tüm UI elementlerini kaydır/fade ile gizle
+
 		FlxTween.tween(showcasePanel, {x: -showcaseWidth}, 0.4, {ease: FlxEase.quartOut});
 		FlxTween.tween(showcasePanelGlow, {x: -showcaseWidth}, 0.4, {ease: FlxEase.quartOut});
 		FlxTween.tween(showcaseBorder, {x: -showcaseWidth}, 0.4, {ease: FlxEase.quartOut});
@@ -1401,43 +1400,42 @@ class FreeplayState extends MusicBeatState
 		FlxTween.tween(showcaseIconFrame, {alpha: 0}, 0.3);
 		FlxTween.tween(showcaseTitle, {alpha: 0}, 0.3);
 		FlxTween.tween(showcaseSubtitle, {alpha: 0}, 0.3);
-		
+
 		FlxTween.tween(scorePanel, {x: -showcaseWidth}, 0.4, {ease: FlxEase.quartOut});
 		FlxTween.tween(scorePanelGlow, {x: -showcaseWidth}, 0.4, {ease: FlxEase.quartOut});
-		
+
 		FlxTween.tween(diffPanel, {x: -showcaseWidth}, 0.4, {ease: FlxEase.quartOut});
 		FlxTween.tween(diffPanelGlow, {x: -showcaseWidth}, 0.4, {ease: FlxEase.quartOut});
-		
+
 		FlxTween.tween(statsPanel, {x: -showcaseWidth}, 0.4, {ease: FlxEase.quartOut});
-		
+
 		FlxTween.tween(topBar, {y: -topBar.height}, 0.3, {ease: FlxEase.quadIn});
 		FlxTween.tween(topBarGlow, {y: -topBarGlow.height}, 0.3, {ease: FlxEase.quadIn});
 		FlxTween.tween(topBarLine, {y: -topBarLine.height}, 0.3, {ease: FlxEase.quadIn});
 		FlxTween.tween(topBarGradient, {y: -topBarGradient.height}, 0.3, {ease: FlxEase.quadIn});
-		
+
 		FlxTween.tween(bottomBG, {y: FlxG.height + bottomBG.height}, 0.3, {ease: FlxEase.quadIn});
 		FlxTween.tween(bottomText, {y: FlxG.height + bottomText.height}, 0.3, {ease: FlxEase.quadIn});
-		
+
 		FlxTween.tween(tabBar, {y: -tabBar.height}, 0.3, {ease: FlxEase.quadIn});
 		FlxTween.tween(tabIndicator, {y: -tabIndicator.height}, 0.3, {ease: FlxEase.quadIn});
 		for (g in tabGlows) FlxTween.tween(g, {y: -g.height}, 0.3, {ease: FlxEase.quadIn});
 		for (t in tabButtons) FlxTween.tween(t, {y: -t.height}, 0.3, {ease: FlxEase.quadIn});
 		for (t in tabTexts) FlxTween.tween(t, {y: -t.height}, 0.3, {ease: FlxEase.quadIn});
-		
+
 		FlxTween.tween(searchContainer, {alpha: 0}, 0.3);
 		FlxTween.tween(randomText, {alpha: 0}, 0.3);
 		FlxTween.tween(randomIcon, {alpha: 0}, 0.3);
-		
-		// Şarkı listesindeki tüm elemanları fade ile gizle
+
 		for (i in 0...grpSongs.members.length) {
-			var songAlpha = (i == curSelected) ? 1 : 0; // Seçili şarkı kalacak
+			var songAlpha = (i == curSelected) ? 1 : 0; 
+
 			FlxTween.tween(grpSongs.members[i], {alpha: songAlpha}, 0.3);
 			if (iconArray[i] != null) {
 				FlxTween.tween(iconArray[i], {alpha: songAlpha}, 0.3);
 			}
 		}
 
-		// Menü elemanları için tweenler
 		FlxTween.tween(menuBG, {alpha: 0.85}, 0.3);
 		FlxTween.tween(songBG, {alpha: 1}, 0.5, {ease: FlxEase.quartOut});
 
@@ -1473,7 +1471,6 @@ class FreeplayState extends MusicBeatState
 		backSelect.alpha = 0;
 		FlxTween.tween(backSelect,      {alpha: 0.6}, 0.2, {startDelay: 0.45});
 
-		// Şarkı müziğini ve vokallerini yükle, ama henüz oynatma
 		if (curSelected >= 0 && songs.length > 0 && instPlaying != curSelected)
 		{
 			destroyFreeplayVocals();
@@ -1486,9 +1483,8 @@ class FreeplayState extends MusicBeatState
 			{
 				Song.loadFromJson(poop, songs[curSelected].songName.toLowerCase());
 
-				// Instruments ve vocals'i aynı anda yükle
 				FlxG.sound.playMusic(Paths.inst(PlayState.SONG.song), 0.8);
-				FlxG.sound.music.pause(); // Henüz oynatma
+				FlxG.sound.music.pause(); 
 
 				if (PlayState.SONG.needsVoices)
 				{
@@ -1505,7 +1501,8 @@ class FreeplayState extends MusicBeatState
 							FlxG.sound.list.add(vocals);
 							vocals.persist = vocals.looped = true;
 							vocals.volume  = 0.8;
-							vocals.pause(); // Henüz oynatma
+							vocals.pause(); 
+
 						}
 						else vocals = FlxDestroyUtil.destroy(vocals);
 					}
@@ -1523,15 +1520,15 @@ class FreeplayState extends MusicBeatState
 							FlxG.sound.list.add(opponentVocals);
 							opponentVocals.persist = opponentVocals.looped = true;
 							opponentVocals.volume  = 0.8;
-							opponentVocals.pause(); // Henüz oynatma
+							opponentVocals.pause(); 
+
 						}
 						else opponentVocals = FlxDestroyUtil.destroy(opponentVocals);
 					}
 					catch (e:Dynamic) { opponentVocals = FlxDestroyUtil.destroy(opponentVocals); }
 				}
-				instPlaying = curSelected; // Başarılı yükleme sonrası instPlaying'i güncelle
-				
-				// Müziği ve vokalleri 0.5 saniye sonra başlat
+				instPlaying = curSelected; 
+
 				new FlxTimer().start(0.5, function(t:FlxTimer) {
 					if (FlxG.sound.music != null) FlxG.sound.music.play();
 					if (vocals != null) vocals.play();
@@ -1540,7 +1537,7 @@ class FreeplayState extends MusicBeatState
 
 			}
 			catch (e:Dynamic) {
-				// Hata olursa instPlaying'i sıfırla ki tekrar yüklemeyi denesin
+
 				instPlaying = -1;
 				FlxG.log.error('Error loading song for preview: $e');
 			}
@@ -1560,7 +1557,6 @@ class FreeplayState extends MusicBeatState
 		selected     = false;
 		selectedItem = 0;
 
-		// Tüm UI elementlerini geri getir
 		FlxTween.tween(showcasePanel, {x: 0}, 0.4, {ease: FlxEase.backOut});
 		FlxTween.tween(showcasePanelGlow, {x: -1}, 0.4, {ease: FlxEase.backOut});
 		FlxTween.tween(showcaseBorder, {x: showcaseWidth - 2}, 0.4, {ease: FlxEase.backOut});
@@ -1570,23 +1566,23 @@ class FreeplayState extends MusicBeatState
 		FlxTween.tween(showcaseIconFrame, {alpha: 1}, 0.3);
 		FlxTween.tween(showcaseTitle, {alpha: 1}, 0.3);
 		FlxTween.tween(showcaseSubtitle, {alpha: 1}, 0.3);
-		
+
 		FlxTween.tween(scorePanel, {x: 15}, 0.4, {ease: FlxEase.backOut});
 		FlxTween.tween(scorePanelGlow, {x: 13}, 0.4, {ease: FlxEase.backOut});
-		
+
 		FlxTween.tween(diffPanel, {x: 15}, 0.4, {ease: FlxEase.backOut});
 		FlxTween.tween(diffPanelGlow, {x: 13}, 0.4, {ease: FlxEase.backOut});
-		
+
 		FlxTween.tween(statsPanel, {x: 15}, 0.4, {ease: FlxEase.backOut});
 
 		FlxTween.tween(topBar, {y: 0}, 0.3, {ease: FlxEase.quadOut});
 		FlxTween.tween(topBarGlow, {y: 0}, 0.3, {ease: FlxEase.quadOut});
 		FlxTween.tween(topBarLine, {y: 53}, 0.3, {ease: FlxEase.quadOut});
 		FlxTween.tween(topBarGradient, {y: 55}, 0.3, {ease: FlxEase.quadOut});
-		
+
 		FlxTween.tween(bottomBG, {y: FlxG.height - 35}, 0.3, {ease: FlxEase.quadOut});
 		FlxTween.tween(bottomText, {y: FlxG.height - 28}, 0.3, {ease: FlxEase.quadOut});
-		
+
 		FlxTween.tween(tabBar, {y: 62 - 3}, 0.3, {ease: FlxEase.quadOut});
 		FlxTween.tween(tabIndicator, {y: 62 + 30 - 3}, 0.3, {ease: FlxEase.quadOut});
 		for (g in tabGlows) FlxTween.tween(g, {y: 62 - 1}, 0.3, {ease: FlxEase.quadOut});
@@ -1596,8 +1592,7 @@ class FreeplayState extends MusicBeatState
 		FlxTween.tween(searchContainer, {alpha: 1}, 0.3);
 		FlxTween.tween(randomText, {alpha: 1}, 0.3);
 		FlxTween.tween(randomIcon, {alpha: 1}, 0.3);
-		
-		// Şarkı listesindeki tüm elemanları geri getir (alpha 1)
+
 		for (i in 0...grpSongs.members.length) {
 			FlxTween.tween(grpSongs.members[i], {alpha: 1}, 0.3);
 			if (iconArray[i] != null) {

@@ -9,6 +9,7 @@ import flixel.group.FlxGroup;
 import flixel.input.gamepad.FlxGamepad;
 import haxe.Json;
 import backend.SafeLoader;
+import backend.ThemeManager;
 
 import openfl.Assets;
 import openfl.display.Bitmap;
@@ -43,7 +44,7 @@ typedef TitleData =
 	var gfy:Float;
 	var backgroundSprite:String;
 	var bpm:Float;
-	
+
 	@:optional var animation:String;
 	@:optional var dance_left:Array<Int>;
 	@:optional var dance_right:Array<Int>;
@@ -52,7 +53,7 @@ typedef TitleData =
 
 class TitleState extends MusicBeatState
 {
-	// ADD THIS FUNCTION HERE:
+
     public static function playFreakyMusic(atVolume:Float = 0)
     {
         FlxG.sound.playMusic(Paths.music('freakyMenu'), atVolume);
@@ -61,32 +62,30 @@ class TitleState extends MusicBeatState
 	public static var volumeDownKeys:Array<FlxKey> = [FlxKey.NUMPADMINUS, FlxKey.MINUS];
 	public static var volumeUpKeys:Array<FlxKey> = [FlxKey.NUMPADPLUS, FlxKey.PLUS];
 
-	// P.E.T INTRO
 	public static var inGame:Bool = false;
 	var skipVideoText:FlxText;
-	
+
 	public static var initialized:Bool = false;
 
 	var credGroup:FlxGroup = new FlxGroup();
 	var textGroup:FlxGroup = new FlxGroup();
-	var extraSprites:Array<FlxSprite> = []; // Ekstra ikonları tutmak için
+	var extraSprites:Array<FlxSprite> = []; 
 
 	var blackScreen:FlxSprite;
 	var credTextShit:Alphabet;
 	var ngSpr:FlxSprite;
-	
+
 	var titleTextColors:Array<FlxColor> = [0xFF33FFFF, 0xFF3333CC];
 	var titleTextAlphas:Array<Float> = [1, .64];
 
 	var curWacky:Array<String> = [];
 
 	var wackyImage:FlxSprite;
-	
+
 	#if VIDEOS_ALLOWED
 	var currentVideo:VideoSprite = null;
 	#end
 
-	// LOGO ANİMASYONU İÇİN KONTROL
 	var logoTweenFinished:Bool = false;
 
 	#if TITLE_SCREEN_EASTER_EGG
@@ -147,21 +146,21 @@ class TitleState extends MusicBeatState
 		{
 			new FlxTimer().start(1.5, function(_) {
 				var msg = SafeLoader.getSafeModeMessage();
-				
+
 				if (SafeLoader.failedMods.length > 0)
 				{
 					msg += "\n\n" + SafeLoader.getSafeModeModsInfo() + "\n" + SafeLoader.failedMods.slice(0, 3).join(", ");
 				}
-				
+
 				msg += "\n\n" + SafeLoader.getSafeModeReenableHint();
-				
+
 				AlertMsg.show(
 					SafeLoader.getSafeModeTitle(),
 					msg,
 					8,
 					AlertMsg.COLOR_WARNING
 				);
-				
+
 				SafeLoader.clearSafeMode();
 			});
 		}
@@ -172,7 +171,7 @@ class TitleState extends MusicBeatState
 	var danceLeft:Bool = false;
 	var titleText:FlxSprite;
 	var swagShader:ColorSwap = null;
-	
+
 	function startCutscenesIn()
 	{
 		trace("=== startCutscenesIn called ===");
@@ -198,7 +197,7 @@ class TitleState extends MusicBeatState
 		inGame = true;
 		startIntro();
 	}
-	
+
 	public function startVideo(name:String)
 	{
 		#if VIDEOS_ALLOWED
@@ -268,25 +267,24 @@ class TitleState extends MusicBeatState
 		Conductor.bpm = musicBPM;
 
 		logoBl = new FlxSprite(logoPosition.x, logoPosition.y);
-		// XML YOK. Sadece PNG resmi olarak yüklüyoruz. Resminin adı farklıysa burayı değiştir (örn: 'logo')
+
 		logoBl.loadGraphic(Paths.image('logoBumpin')); 
 		logoBl.antialiasing = ClientPrefs.data.antialiasing;
 		logoBl.updateHitbox();
-		
-		// Intro geçilene kadar logoyu saklıyoruz ve küçültüyoruz
+
 		logoBl.alpha = 0;
 		logoBl.scale.set(0.1, 0.1);
 
 		gfDance = new FlxSprite(gfPosition.x, gfPosition.y);
 		gfDance.antialiasing = ClientPrefs.data.antialiasing;
-		
+
 		if(ClientPrefs.data.shaders)
 		{
 			swagShader = new ColorSwap();
 			gfDance.shader = swagShader.shader;
 			logoBl.shader = swagShader.shader;
 		}
-		
+
 		gfDance.frames = Paths.getSparrowAtlas(characterImage);
 		if(!useIdle)
 		{
@@ -308,7 +306,7 @@ class TitleState extends MusicBeatState
 			titleText.animation.findByPrefix(animFrames, "ENTER IDLE");
 			titleText.animation.findByPrefix(animFrames, "ENTER FREEZE");
 		}
-		
+
 		if (newTitle = animFrames.length > 0)
 		{
 			titleText.animation.addByPrefix('idle', "ENTER IDLE", 24);
@@ -356,7 +354,7 @@ class TitleState extends MusicBeatState
 	var gfPosition:FlxPoint = FlxPoint.get(512, 40);
 	var logoPosition:FlxPoint = FlxPoint.get(-150, -100);
 	var enterPosition:FlxPoint = FlxPoint.get(100, 576);
-	
+
 	var useIdle:Bool = false;
 	var musicBPM:Float = 102;
 	var danceLeftFrames:Array<Int> = [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
@@ -376,12 +374,12 @@ class TitleState extends MusicBeatState
 					logoPosition.set(titleJSON.titlex, titleJSON.titley);
 					enterPosition.set(titleJSON.startx, titleJSON.starty);
 					musicBPM = titleJSON.bpm;
-					
+
 					if(titleJSON.animation != null && titleJSON.animation.length > 0) animationName = titleJSON.animation;
 					if(titleJSON.dance_left != null && titleJSON.dance_left.length > 0) danceLeftFrames = titleJSON.dance_left;
 					if(titleJSON.dance_right != null && titleJSON.dance_right.length > 0) danceRightFrames = titleJSON.dance_right;
 					useIdle = (titleJSON.idle == true);
-	
+
 					if (titleJSON.backgroundSprite != null && titleJSON.backgroundSprite.trim().length > 0)
 					{
 						var bg:FlxSprite = new FlxSprite().loadGraphic(Paths.image(titleJSON.backgroundSprite));
@@ -452,14 +450,14 @@ class TitleState extends MusicBeatState
 
 	var transitioning:Bool = false;
 	private static var playJingle:Bool = false;
-	
+
 	var newTitle:Bool = false;
 	var titleTimer:Float = 0;
 
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
-		
+
 		if (FlxG.sound.music != null)
 			Conductor.songPosition = FlxG.sound.music.time;
 
@@ -485,7 +483,7 @@ class TitleState extends MusicBeatState
 				pressedEnter = true;
 			#end
 		}
-		
+
 		if (newTitle) {
 			titleTimer += FlxMath.bound(elapsed, 0, 1);
 			if (titleTimer > 2) titleTimer -= 2;
@@ -498,18 +496,18 @@ class TitleState extends MusicBeatState
 				var timer:Float = titleTimer;
 				if (timer >= 1)
 					timer = (-timer) + 2;
-				
+
 				timer = FlxEase.quadInOut(timer);
-				
+
 				titleText.color = FlxColor.interpolate(titleTextColors[0], titleTextColors[1], timer);
 				titleText.alpha = FlxMath.lerp(titleTextAlphas[0], titleTextAlphas[1], timer);
 			}
-			
+
 			if(pressedEnter)
 			{
 				titleText.color = FlxColor.WHITE;
 				titleText.alpha = 1;
-				
+
 				if(titleText != null) titleText.animation.play('press');
 				FlxG.camera.flash(ClientPrefs.data.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);
 				FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
@@ -527,7 +525,7 @@ class TitleState extends MusicBeatState
 						return;
 					}
 					AuthManager.autoLogin(function(ok) {
-						if (ok) FlxG.switchState(new MainMenuState());
+						if (ok) ThemeManager.switchToMainMenu();
 						else {
 							SupabaseClient.clearToken();
 							FlxG.switchState(new AuthState());
@@ -605,11 +603,11 @@ class TitleState extends MusicBeatState
 		{
 			var money:Alphabet = new Alphabet(0, 0, textArray[i], true);
 			money.screenCenter(X);
-			
+
 			var targetY = (i * 60) + 200 + offset;
 			money.y = targetY + 50; 
 			money.alpha = 0;        
-			
+
 			if(credGroup != null && textGroup != null)
 			{
 				credGroup.add(money);
@@ -625,11 +623,11 @@ class TitleState extends MusicBeatState
 		if(textGroup != null && credGroup != null) {
 			var coolText:Alphabet = new Alphabet(0, 0, text, true);
 			coolText.screenCenter(X);
-			
+
 			var targetY = (textGroup.length * 60) + 200 + offset;
 			coolText.y = targetY + 50; 
 			coolText.alpha = 0;        
-			
+
 			credGroup.add(coolText);
 			textGroup.add(coolText);
 
@@ -640,11 +638,11 @@ class TitleState extends MusicBeatState
 	function addIconToText(imagePath:String, isOnLeft:Bool = true, ?offsetY:Float = 0)
 	{
 		if (textGroup.length == 0) return;
-		
+
 		var targetText:Alphabet = cast textGroup.members[textGroup.length - 1];
 		var icon:FlxSprite = new FlxSprite().loadGraphic(Paths.image(imagePath));
 		icon.antialiasing = ClientPrefs.data.antialiasing;
-		
+
 		icon.setGraphicSize(Std.int(icon.width * 0.8));
 		icon.updateHitbox();
 
@@ -654,7 +652,7 @@ class TitleState extends MusicBeatState
 		else
 			targetX = targetText.x + targetText.width + 20;
 
-		var targetY:Float = targetText.y + (targetText.height / 2) - (icon.height / 2) + offsetY; // offsetY eklendi
+		var targetY:Float = targetText.y + (targetText.height / 2) - (icon.height / 2) + offsetY; 
 
 		icon.x = targetX;
 		icon.y = targetY + 50;
@@ -685,7 +683,7 @@ class TitleState extends MusicBeatState
 
 	private var sickBeats:Int = 0;
 	public static var closedState:Bool = false;
-	
+
 	override function beatHit()
 	{
 		super.beatHit();
@@ -693,7 +691,7 @@ class TitleState extends MusicBeatState
 		if(logoBl != null && skippedIntro && logoTweenFinished)
 		{
 			logoBl.scale.set(1.05, 1.05); 
-			
+
 			FlxTween.cancelTweensOf(logoBl.scale);
 			FlxTween.tween(logoBl.scale, {x: 1, y: 1}, 0.3, {ease: FlxEase.quadOut});
 		}
@@ -728,7 +726,7 @@ class TitleState extends MusicBeatState
 				case 5:
 					deleteCoolText();
 				case 6:
-					// Newgrounds logosu - üstte
+
 					ngSpr.visible = true;
 					ngSpr.screenCenter(X);
 					ngSpr.y = 20;
@@ -765,7 +763,7 @@ class TitleState extends MusicBeatState
 					FlxTween.tween(peuLogo, {y: peuLogo.y - 10, alpha: 1}, 2.5, {ease: FlxEase.expoOut});
 
 				case 15:
-					createCoolText(['Psych Engine Ultra'], 250); // 80px aşağıda başlasın
+					createCoolText(['Psych Engine Ultra'], 250); 
 
 				case 16:
 					addMoreText('SametGkTe TarafIndan', 280);
@@ -787,7 +785,7 @@ class TitleState extends MusicBeatState
 
 	var skippedIntro:Bool = false;
 	var increaseVolume:Bool = false;
-	
+
 	function skipIntro():Void
 	{
 		if (!skippedIntro)
@@ -817,7 +815,7 @@ class TitleState extends MusicBeatState
 						remove(credGroup);
 						FlxG.camera.flash(FlxColor.WHITE, 2);
 						skippedIntro = true;
-						
+
 						startLogoTween();
 
 						FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
@@ -859,7 +857,6 @@ class TitleState extends MusicBeatState
 				remove(credGroup);
 				FlxG.camera.flash(FlxColor.WHITE, 4);
 
-				// --- LOGO GELİŞ ANİMASYONU ---
 				startLogoTween();
 
 				var easteregg:String = FlxG.save.data.psychDevsEasterEgg;
@@ -903,7 +900,7 @@ class TitleState extends MusicBeatState
 		#if TOUCH_CONTROLS_ALLOWED
 		removeTouchControls();
 		#end
-		
+
 		super.destroy();
 	}
 }

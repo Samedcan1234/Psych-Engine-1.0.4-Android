@@ -498,6 +498,15 @@ class Spanish implements ILanguage
 		"language_changed_msg"   => "Cambiado al Español.",
 		"language_locked_title"  => "¡Idioma Bloqueado!",
 		"language_locked_msg"    => "Este idioma no está disponible actualmente.",
+		
+		// Reproductor de Música
+		"musicplayer_title"           => "REPRODUCTOR DE MÚSICA",
+		"musicplayer_now_playing"     => "REPRODUCIENDO AHORA",
+		"musicplayer_loading"         => "Cargando...",
+		"musicplayer_no_music"        => "No Se Encontró Música",
+		"musicplayer_file_not_found"  => "Archivo No Encontrado",
+		"musicplayer_play_error"      => "Error de Reproducción",
+		"musicplayer_error"           => "Error",
 
 		// ── In-game ───────────────────────────────────────────────
 		"blueballed"    => "Perdiste: {1}",

@@ -1,19 +1,5 @@
 package options;
 
-/**
- * Kategorize ayar menüsü örneği.
- * CategoryOptionsMenu'yu extend et, override create()'de
- * kategorilerini ekle, sonunda buildMenu() çağır.
- *
- * 2. Sistem (MainMenuState bağlantısı):
- *   Option'ların variable alanı doğrudan ClientPrefs.data'daki
- *   field adıyla eşleşir. Ayarı kaydetmek için ClientPrefs.saveSettings()
- *   yeterlidir — zaten BaseOptionsMenu/CategoryOptionsMenu kapatılırken
- *   OptionsState.closeSubState() içinde çağrılır.
- *
- *   MainMenuState içinde ise sadece şunu yap:
- *     if (ClientPrefs.data.mainMenuInfoBox) { ... infoBox kodları ... }
- */
 class UltraSettingsState extends CategoryOptionsMenu
 {
 	override function create()
@@ -21,20 +7,15 @@ class UltraSettingsState extends CategoryOptionsMenu
 		title    = 'Ultra Ayarlar';
 		rpcTitle = 'Ultra Ayarlar Menüsü';
 
-		// ══════════════════════════════════════════════════
-		// KATEGORİ 1 — Ana Menü Ayarları
-		// ══════════════════════════════════════════════════
 		var catMainMenu = new OptionCategory(
 			'Ana Menü Ayarları',
 			'Ana menü görünümü ve davranışıyla ilgili ayarlar.'
 		);
 
-		// Bu option'ın variable adı ClientPrefs.data içindeki field ile EŞLEŞMELİ.
-		// Örnek: ClientPrefs.data.mainMenuInfoBox = true/false
 		var optInfoBox = new Option(
 			'Bilgi Kutucuğu',
 			'Ana menüde bilgi kutucuğunu gösterir.',
-			'mainMenuInfoBox',   // ← ClientPrefs.data.mainMenuInfoBox
+			'mainMenuInfoBox',
 			BOOL
 		);
 		catMainMenu.addOption(optInfoBox);
@@ -47,7 +28,6 @@ class UltraSettingsState extends CategoryOptionsMenu
 		);
 		catMainMenu.addOption(optBgAnim);
 
-		// Bu option yalnızca 'mainMenuBgAnim' true ise aktif olur
 		var optBgSpeed = new Option(
 			'Animasyon Hızı',
 			'Arka plan animasyonunun hızını ayarlar.',
@@ -59,14 +39,12 @@ class UltraSettingsState extends CategoryOptionsMenu
 		optBgSpeed.changeValue = 0.1;
 		optBgSpeed.decimals    = 1;
 		optBgSpeed.displayFormat = '%v x';
-		optBgSpeed.dependsOn   = 'mainMenuBgAnim'; // ← bağımlılık sistemi
+		optBgSpeed.dependsOn   = 'mainMenuBgAnim'; 
+
 		catMainMenu.addOption(optBgSpeed);
 
 		addCategory(catMainMenu);
 
-		// ══════════════════════════════════════════════════
-		// KATEGORİ 2 — Mod Menüsü Ayarları
-		// ══════════════════════════════════════════════════
 		var catModMenu = new OptionCategory(
 			'Mod Menüsü Ayarları',
 			'Mod menüsü görünümü ve sıralama seçenekleri.'
@@ -91,9 +69,6 @@ class UltraSettingsState extends CategoryOptionsMenu
 
 		addCategory(catModMenu);
 
-		// ══════════════════════════════════════════════════
-		// KATEGORİ 3 — Serbest Oyun Menüsü Ayarları
-		// ══════════════════════════════════════════════════
 		var catFreeplay = new OptionCategory(
 			'Serbest Oyun Menüsü Ayarları',
 			'Serbest oyun menüsüne ait görsel ve davranış ayarları.'
@@ -113,49 +88,14 @@ class UltraSettingsState extends CategoryOptionsMenu
 			'freeplayPreviewVolume',
 			PERCENT
 		);
-		optFreeplayVolume.dependsOn = 'freeplayPreview'; // önizleme kapalıysa gri
+		optFreeplayVolume.dependsOn = 'freeplayPreview'; 
+
 		catFreeplay.addOption(optFreeplayVolume);
 
 		addCategory(catFreeplay);
 
-		// ══════════════════════════════════════════════════
-		// Menüyü inşa et — addCategory çağrılarından SONRA
-		// ══════════════════════════════════════════════════
 		buildMenu();
 
 		super.create();
 	}
 }
-
-// ══════════════════════════════════════════════════════════════
-// MainMenuState İÇİNDE KULLANIM (sadece örnek, oraya kopyala)
-// ══════════════════════════════════════════════════════════════
-//
-//   override function create()
-//   {
-//       super.create();
-//
-//       // Bilgi kutucuğu ayarı açıksa göster
-//       if (ClientPrefs.data.mainMenuInfoBox)
-//       {
-//           var infoBox:FlxText = new FlxText(10, 10, 400, 'Hoş geldin!', 20);
-//           add(infoBox);
-//       }
-//
-//       // Arka plan animasyonu açıksa başlat
-//       if (ClientPrefs.data.mainMenuBgAnim)
-//       {
-//           var speed:Float = ClientPrefs.data.mainMenuBgSpeed;
-//           bgSprite.velocity.x = 50 * speed;
-//       }
-//   }
-//
-// ──────────────────────────────────────────────────────────────
-// OptionsState'e eklemek için openSelectedSubstate() içine:
-//
-//   case 'Ultra Ayarlar':
-//       openSubState(new options.UltraSettingsState());
-//
-// options dizisine de ekle:
-//   'Ultra Ayarlar'
-// ══════════════════════════════════════════════════════════════

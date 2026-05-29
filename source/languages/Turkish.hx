@@ -365,6 +365,15 @@ class Turkish implements ILanguage
         "main_menu_logo"    => "PSYCH ENGİNE ULTRA",
         "main_menu_edition" => "TÜRKİYE EDİTİON",
         "main_menu_version" => "Psych Engine Ultra",
+		
+		// Müzik Oynatıcı
+		"musicplayer_title"           => "MÜZİK OYNATICI",
+		"musicplayer_now_playing"     => "ŞİMDİ ÇALIYOR",
+		"musicplayer_loading"         => "Yükleniyor...",
+		"musicplayer_no_music"        => "Müzik Bulunamadı",
+		"musicplayer_file_not_found"  => "Dosya Bulunamadı",
+		"musicplayer_play_error"      => "Oynatma Hatası",
+		"musicplayer_error"           => "Hata",
         
         "changelog_title" => "Psych Engine Ultra",
         "changelog_notes" => "\n- Arayüz Yenilendi!\n- Profil Sistemi Güncellendi\n- Menü Temaları Eklendi.\n- Mod Desteği Optimize Edildi.\n- P.E Ultra 0.5 temeline alındı.\n- Birazcık Bugfix.\n \n- ŞUANKİ SÜRÜM: Ultra Edition\n Durum: Güncel Sürüm",

@@ -32,6 +32,7 @@ import states.TitleState;
 	public var ultraModSystem:Bool = true;
 	public var potatomode:Bool = false;
 	public var testMode:Bool = true;
+	public var recordingSpec:String = 'Balanced';
 	
 	
 	// MainMenu (V3)

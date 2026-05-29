@@ -14,39 +14,16 @@ import options.Option;
 import options.OptionCategory;
 import backend.InputFormatter;
 
-/**
- * Kategorize accordion ayar menüsü.
- *
- * Kullanım (kendi SubState'inden):
- *
- *   var cat = new OptionCategory('Ana Menü Ayarları', 'Ana menüyle ilgili ayarlar.');
- *   var opt = new Option('Bilgi Kutusu', 'Açıklamayı gösterir.', 'infoBox', BOOL);
- *   cat.addOption(opt);
- *   addCategory(cat);
- *
- * Kontroller:
- *   YUKARI / AŞAĞI  → Gezin
- *   ENTER           → Kategori başlığını aç/kapat  |  Option değeri değiştir (BOOL toggle)
- *   SOL / SAĞ       → String/Int/Float option değeri değiştir
- *   R               → Seçili option'ı sıfırla
- *   ESC             → Kapat
- */
 class CategoryOptionsMenu extends MusicBeatSubstate
 {
-	// ─── Veri ────────────────────────────────────────────────
+
 	var categories:Array<OptionCategory> = [];
 
-	/**
-	 * Düz liste: her eleman ya bir OptionCategory (başlık satırı)
-	 * ya da bir Option (içerik satırı).
-	 * Accordion aç/kapanınca bu liste yeniden oluşturulur.
-	 */
 	var flatList:Array<Dynamic> = [];
 
 	var curSelected:Int = 0;
-	var curOption:Option  = null;   // seçili satır Option ise dolu, kategori ise null
+	var curOption:Option  = null;   
 
-	// ─── UI ──────────────────────────────────────────────────
 	public var title:String    = 'Ayarlar';
 	public var rpcTitle:String = 'Ayarlar Menüsü';
 
@@ -63,44 +40,40 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 	var glowEffect:FlxSprite;
 	var particleEmitter:FlxEmitter;
 
-	// Satır grupları
-	var rowGroup:FlxTypedGroup<FlxSprite>;       // kart arka planları
-	var labelGroup:FlxTypedGroup<FlxText>;        // başlık ve option yazıları
+	var rowGroup:FlxTypedGroup<FlxSprite>;       
+
+	var labelGroup:FlxTypedGroup<FlxText>;        
+
 	var checkboxGroup:FlxTypedGroup<CheckboxThingie>;
 	var valueGroup:FlxTypedGroup<AttachedText>;
 
-	// ─── Animasyon ───────────────────────────────────────────
 	var animTimer:Float  = 0;
 	var pulseTimer:Float = 0;
 
-	// ─── Layout ──────────────────────────────────────────────
-	static inline var ROW_H:Float        = 72;    // her satırın yüksekliği
+	static inline var ROW_H:Float        = 72;    
+
 	static inline var ROW_W:Float        = 820;
-	static inline var LIST_TOP:Float     = 155;   // ilk satırın Y başlangıcı
-	static inline var INDENT:Float       = 36;    // option girinti miktarı
-	static inline var VISIBLE_ROWS:Int   = 6;     // ekranda görünen maksimum satır
+	static inline var LIST_TOP:Float     = 155;   
+
+	static inline var INDENT:Float       = 36;    
+
+	static inline var VISIBLE_ROWS:Int   = 6;     
+
 	static inline var CAT_COLOR:Int      = 0xFF222233;
 	static inline var OPT_COLOR:Int      = 0xFF111122;
 	static inline var SEL_COLOR:Int      = 0xFF2a2a4a;
 	static inline var LOCKED_GRAY:Int    = 0xFF888888;
 
-	// ─── Hold mantığı ────────────────────────────────────────
 	var nextAccept:Int  = 5;
 	var holdTime:Float  = 0;
 	var holdValue:Float = 0;
 
-	// ─── Tween takibi (accordion) ────────────────────────────
 	var rebuildPending:Bool = false;
 
-	// ═════════════════════════════════════════════════════════
 	public function new()
 	{
 		super();
 	}
-
-	// ═════════════════════════════════════════════════════════
-	// PUBLIC API
-	// ═════════════════════════════════════════════════════════
 
 	public function addCategory(cat:OptionCategory):OptionCategory
 	{
@@ -108,9 +81,6 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 		return cat;
 	}
 
-	// Subclass'lar super.create() ÖNCE kategorilerini eklemeli,
-	// sonra super.create() çağırmalı — VEYA override create()'de
-	// addCategory(...) çağırıp sonunda buildMenu() çağırmalı.
 	public function buildMenu()
 	{
 		if(title == null)   title   = 'Ayarlar';
@@ -130,10 +100,6 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 		rebuildRows(true);
 		changeSelection(0);
 	}
-
-	// ═════════════════════════════════════════════════════════
-	// IÇ INŞA
-	// ═════════════════════════════════════════════════════════
 
 	function _buildBackground()
 	{
@@ -248,33 +214,23 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 		add(particleEmitter);
 	}
 
-	// ═════════════════════════════════════════════════════════
-	// FLAT LIST & ROW REBUILD
-	// ═════════════════════════════════════════════════════════
-
-	/**
-	 * categories dizisinden düz bir liste oluşturur.
-	 * Kapalı kategorilerin option'ları eklenmez.
-	 */
 	function rebuildFlatList()
 	{
 		flatList = [];
 		for (cat in categories)
 		{
-			flatList.push(cat);          // kategori başlığı
+			flatList.push(cat);          
+
 			if (cat.isOpen)
 				for (opt in cat.options)
-					flatList.push(opt);  // açık kategorinin option'ları
+					flatList.push(opt);  
+
 		}
 	}
 
-	/**
-	 * flatList'e göre tüm row sprite/text'lerini yeniden oluşturur.
-	 * instant = true → tween yok, direkt yerleştir (ilk yükleme için)
-	 */
 	function rebuildRows(instant:Bool = false)
 	{
-		// Mevcut satırları temizle
+
 		rowGroup.clear();
 		labelGroup.clear();
 		checkboxGroup.clear();
@@ -290,7 +246,6 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 			var startY   = instant ? targetY : targetY - 30;
 			var startAlpha:Float = instant ? 1 : 0;
 
-			// ── Kart arka planı ──────────────────────────────
 			var cardColor:Int = isCategory ? CAT_COLOR : OPT_COLOR;
 			if (i == curSelected) cardColor = SEL_COLOR;
 
@@ -304,7 +259,6 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 				FlxTween.tween(card, {alpha: 0.85, y: targetY}, 0.35,
 					{ease: FlxEase.quartOut, startDelay: i * 0.03});
 
-			// ── Label ────────────────────────────────────────
 			var labelX:Float;
 			var labelStr:String;
 			var labelSize:Int;
@@ -341,7 +295,6 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 				FlxTween.tween(lbl, {alpha: 1, y: startY + 14 + (targetY - startY)}, 0.35,
 					{ease: FlxEase.quartOut, startDelay: i * 0.03});
 
-			// ── Checkbox veya value text (sadece Option satırları) ──
 			if (!isCategory)
 			{
 				var opt:Option = cast item;
@@ -380,24 +333,18 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 			}
 		}
 
-		// curSelected sınır kontrolü
 		if (curSelected >= flatList.length)
 			curSelected = flatList.length - 1;
 		if (curSelected < 0)
 			curSelected = 0;
 	}
 
-	/** i. satırın hedef Y konumu (scroll dahil) */
 	function _rowTargetY(i:Int):Float
 	{
-		// Seçili satırı ekranın üst 1/3'üne sabitle, geri kalanı kaydır
+
 		var scrollOffset:Float = Math.max(0, curSelected - 2) * ROW_H;
 		return LIST_TOP + i * ROW_H - scrollOffset;
 	}
-
-	// ═════════════════════════════════════════════════════════
-	// UPDATE
-	// ═════════════════════════════════════════════════════════
 
 	override function update(elapsed:Float)
 	{
@@ -413,7 +360,6 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 			glowEffect.angle += elapsed * 12;
 		}
 
-		// Scroll indicator
 		if (flatList.length > 1)
 		{
 			var prog    = curSelected / (flatList.length - 1);
@@ -421,10 +367,8 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 			scrollIndicator.y = FlxMath.lerp(scrollIndicator.y, indY, elapsed * 10);
 		}
 
-		// Satır konumlarını güncelle (scroll animasyonu)
 		_updateRowPositions(elapsed);
 
-		// ── Navigasyon ────────────────────────────────────
 		if (controls.UI_UP_P)   changeSelection(-1);
 		if (controls.UI_DOWN_P) changeSelection(1);
 
@@ -444,13 +388,13 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 
 			if (Std.isOfType(item, OptionCategory))
 			{
-				// ── Kategori başlığı seçili ──────────────────
+
 				if (controls.ACCEPT)
 					_toggleCategory(cast item);
 			}
 			else
 			{
-				// ── Option seçili ────────────────────────────
+
 				var opt:Option = cast item;
 
 				if (_isLocked(opt))
@@ -523,7 +467,6 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 					}
 				}
 
-				// Reset
 				if (controls.RESET)
 				{
 					opt.setValue(opt.defaultValue);
@@ -541,29 +484,20 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 		if (nextAccept > 0) nextAccept--;
 	}
 
-	// ═════════════════════════════════════════════════════════
-	// ACCORDION TOGGLE
-	// ═════════════════════════════════════════════════════════
-
 	function _toggleCategory(cat:OptionCategory)
 	{
 		cat.isOpen = !cat.isOpen;
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 
-		// Description güncelle
 		_updateDesc(cat.isOpen
 			? cat.description
 			: '${cat.name} — ENTER ile aç/kapat');
 
-		// Düz listeyi yeniden kur ve satırları slide-down ile canlandır
 		rebuildFlatList();
-		rebuildRows(false);   // instant=false → tween ile gir
+		rebuildRows(false);   
+
 		_updateSelectionVisuals();
 	}
-
-	// ═════════════════════════════════════════════════════════
-	// SEÇİM
-	// ═════════════════════════════════════════════════════════
 
 	function changeSelection(dir:Int = 0)
 	{
@@ -599,12 +533,10 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 			var item       = flatList[i];
 			var isCat      = Std.isOfType(item, OptionCategory);
 
-			// Kart rengi
 			var baseColor:Int = isCat ? CAT_COLOR : OPT_COLOR;
 			card.color = isSelected ? SEL_COLOR : baseColor;
 			card.alpha  = isSelected ? 1.0 : 0.75;
 
-			// Label rengi
 			if (isCat)
 			{
 				label.alpha = isSelected ? 1.0 : 0.75;
@@ -619,10 +551,6 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 		}
 	}
 
-	// ═════════════════════════════════════════════════════════
-	// SATIR KONUM ANİMASYONU
-	// ═════════════════════════════════════════════════════════
-
 	function _updateRowPositions(elapsed:Float)
 	{
 		var centerX:Float = (FlxG.width - ROW_W) / 2;
@@ -636,21 +564,15 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 			if (card  != null) card.y  = FlxMath.lerp(card.y,  targetY,           elapsed * 12);
 			if (label != null) label.y = FlxMath.lerp(label.y, targetY + 14,      elapsed * 12);
 
-			// Checkbox
 			for (cb in checkboxGroup.members)
 				if (cb != null && cb.ID == i)
 					cb.y = FlxMath.lerp(cb.y, targetY + (ROW_H - 4) / 2 - 18, elapsed * 12);
 
-			// Value text
 			for (vt in valueGroup.members)
 				if (vt != null && vt.ID == i)
 					vt.y = FlxMath.lerp(vt.y, targetY + 14, elapsed * 12);
 		}
 	}
-
-	// ═════════════════════════════════════════════════════════
-	// YARDIMCI FONKSİYONLAR
-	// ═════════════════════════════════════════════════════════
 
 	function _isLocked(opt:Option):Bool
 	{
@@ -697,7 +619,7 @@ class CategoryOptionsMenu extends MusicBeatSubstate
 							cb.daValue = Std.string(opt.getValue()) == 'true';
 			}
 		}
-		// Bağımlılık görsellerini de güncelle
+
 		_refreshDependencyColors();
 	}
 

@@ -94,7 +94,7 @@ class FlashingState extends MusicBeatState
 	}
 
 	function updateItems() {
-		// it's clunky but it works.
+
 		texts.members[1].alpha = isYes ? 1.0 : 0.6;
 		texts.members[2].alpha = isYes ? 0.6 : 1.0;
 	}

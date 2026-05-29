@@ -1,6 +1,10 @@
 package backend;
 
 import openfl.utils.Assets;
+import modcore.HybridModManager;
+import modcore.ModAssetBridge;
+import modcore.PolymodHandler;
+import modcore.PsychModHandler;
 
 import haxe.Json;
 
@@ -33,6 +37,49 @@ class Mods
 
 	private static var globalMods:Array<String> = [];
 
+	public static var hybridInitialized:Bool = false;
+
+	public static function initHybridSystem():Void
+	{
+		if (hybridInitialized) return;
+
+		trace('[Mods] Hibrit mod sistemi başlatılıyor...');
+
+		PsychModHandler.modsDirectory = getModsFolder();
+		PsychModHandler.currentModDirectory = currentModDirectory;
+
+		HybridModManager.init();
+
+		HybridModManager.onModEnabled = function(mod) {
+			trace('[Mods] Hibrit: Mod etkinleştirildi — ${mod.id}');
+
+			updatedOnState = false;
+		};
+
+		HybridModManager.onModDisabled = function(mod) {
+			trace('[Mods] Hibrit: Mod devre dışı — ${mod.id}');
+			updatedOnState = false;
+		};
+
+		HybridModManager.onConflictDetected = function(conflict) {
+			trace('[Mods] Hibrit: Çakışma tespit edildi — ${conflict.modAId} <-> ${conflict.modBId}: ${conflict.details}');
+		};
+
+		HybridModManager.onModsReloaded = function() {
+			trace('[Mods] Hibrit: Modlar yeniden yüklendi');
+
+			Paths.clearStoredMemory();
+		};
+
+		hybridInitialized = true;
+
+		#if debug
+		HybridModManager.debugPrintStatus();
+		#end
+
+		trace('[Mods] Hibrit mod sistemi başarıyla başlatıldı.');
+	}
+
 	inline public static function getGlobalMods()
 		return globalMods;
 
@@ -44,6 +91,9 @@ class Mods
 			var pack:Dynamic = getPack(mod);
 			if(pack != null && pack.runsGlobally) globalMods.push(mod);
 		}
+
+		PsychModHandler.globalMods = globalMods.copy();
+
 		return globalMods;
 	}
 
@@ -63,7 +113,48 @@ class Mods
 		#end
 		return list;
 	}
-	
+
+	public static function resolveModAsset(assetPath:String):String
+	{
+		if (hybridInitialized)
+			return ModAssetBridge.resolveAssetPath(assetPath);
+
+		return assetPath;
+	}
+
+	public static function isPolymodCompatible(?folder:String):Bool
+	{
+		if (folder == null) folder = currentModDirectory;
+		if (folder == null || folder.length == 0) return false;
+
+		return PolymodHandler.isPolymodCompatible(Paths.mods(folder));
+	}
+
+	public static function getModType(?folder:String):String
+	{
+		if (!hybridInitialized) return "PSYCH_ONLY";
+		if (folder == null) folder = currentModDirectory;
+		if (folder == null || folder.length == 0) return "UNKNOWN";
+
+		var info = HybridModManager.getModInfo(folder);
+		if (info == null) return "UNKNOWN";
+
+		return switch(info.modType) {
+			case PSYCH_ONLY: "PSYCH_ONLY";
+			case POLYMOD_ONLY: "POLYMOD_ONLY";
+			case HYBRID: "HYBRID";
+		};
+	}
+
+	public static function generatePolymodTemplatesForAll():Int
+	{
+		if (!hybridInitialized) {
+			trace('[Mods] Hibrit sistem başlatılmamış, şablon oluşturulamıyor.');
+			return 0;
+		}
+		return HybridModManager.generatePolymodTemplates();
+	}
+
 	inline public static function mergeAllTextsNamed(path:String, ?defaultDirectory:String = null, allowDuplicates:Bool = false)
 	{
 		if(defaultDirectory == null) defaultDirectory = Paths.getSharedPath();
@@ -88,6 +179,24 @@ class Mods
 				if((allowDuplicates || !mergedList.contains(value)) && value.length > 0)
 					mergedList.push(value);
 		}
+
+		#if POLYMOD_SUPPORT
+		if (hybridInitialized && PolymodHandler.initialized)
+		{
+			var polymodMerged = ModAssetBridge.mergeTextAssets(path, HybridModManager.activeMods);
+			if (polymodMerged != null)
+			{
+				var polyLines = polymodMerged.split("\n");
+				for (pLine in polyLines)
+				{
+					var trimmed = pLine.trim();
+					if (trimmed.length > 0 && (allowDuplicates || !mergedList.contains(trimmed)))
+						mergedList.push(trimmed);
+				}
+			}
+		}
+		#end
+
 		return mergedList;
 	}
 
@@ -121,6 +230,21 @@ class Mods
 				var folder:String = Paths.mods(Mods.currentModDirectory + '/' + fileToFind);
 				if(FileSystem.exists(folder) && !foldersToCheck.contains(folder)) foldersToCheck.push(folder);
 			}
+
+			#if POLYMOD_SUPPORT
+			if (hybridInitialized)
+			{
+				for (mod in HybridModManager.activeMods)
+				{
+					if (mod.modType == POLYMOD_ONLY)
+					{
+						var polyFolder:String = '${mod.path}/$fileToFind';
+						if (FileSystem.exists(polyFolder) && !foldersToCheck.contains(polyFolder))
+							foldersToCheck.push(polyFolder);
+					}
+				}
+			}
+			#end
 		}
 		#end
 		return foldersToCheck;
@@ -139,10 +263,9 @@ class Mods
 				#else
 				var rawJson:String = Assets.getText(path);
 				#end
-				
+
 				if(rawJson != null && rawJson.length > 0)
 				{
-					// GÜVENLİ JSON PARSE
 					try {
 						return tjson.TJSON.parse(rawJson);
 					} catch(jsonError:Dynamic) {
@@ -156,13 +279,66 @@ class Mods
 				SafeLoader.failedMods.push(folder);
 			}
 		}
+
+		#if POLYMOD_SUPPORT
+		if (hybridInitialized)
+		{
+			var polyMeta = PolymodHandler.readPolymodMeta(Paths.mods(folder));
+			if (polyMeta != null)
+			{
+				return {
+					name: polyMeta.title,
+					description: polyMeta.description,
+					author: polyMeta.author,
+					version: polyMeta.modVersion,
+					runsGlobally: false,
+					color: [170, 0, 255]
+				};
+			}
+		}
+		#end
 		#end
 		return null;
 	}
 
-	// ── Yardımcı: modsList.txt yolu ─────────────────────────────────────────
-	// PC'de: Sys.getCwd() + 'modsList.txt'
-	// Mobilde: özel mod yolu varsa oraya, yoksa varsayılan harici dizine
+	public static function getExtendedPack(?folder:String = null):Dynamic
+	{
+		if (folder == null) folder = currentModDirectory;
+		if (folder == null || folder.length == 0) return null;
+
+		var pack = getPack(folder);
+
+		#if POLYMOD_SUPPORT
+		if (hybridInitialized)
+		{
+			var polyMeta = PolymodHandler.readPolymodMeta(Paths.mods(folder));
+			if (polyMeta != null)
+			{
+				if (pack == null)
+				{
+					pack = {
+						name: polyMeta.title,
+						description: polyMeta.description,
+						author: polyMeta.author,
+						version: polyMeta.modVersion,
+						runsGlobally: false,
+						color: [170, 0, 255]
+					};
+				}
+
+				Reflect.setField(pack, "polymod", {
+					apiVersion: polyMeta.apiVersion,
+					modVersion: polyMeta.modVersion,
+					dependencies: polyMeta.dependencies
+				});
+				Reflect.setField(pack, "isHybrid", true);
+			}
+		}
+		#end
+
+		return pack;
+	}
+
 	private static function getModsListPath():String
 	{
 		var customPath:String = ClientPrefs.data.modsPath;
@@ -177,9 +353,6 @@ class Mods
 		#end
 	}
 
-	// ── Yardımcı: Paths.mods() yerine özel dizini destekleyen versiyon ──────
-	// Paths.mods() zaten doğru dizini döndürüyorsa buna gerek yok.
-	// Ama Paths.mods() hâlâ hardcoded ise burayı kullan.
 	public static function getModsFolder(?subfolder:String = null):String
 	{
 		#if (android || ios)
@@ -202,27 +375,25 @@ class Mods
 		#if MODS_ALLOWED
 		try {
 			var modsListPath = getModsListPath();
-			
-			// Dosya yoksa boş liste döndür
+
 			if (!FileSystem.exists(modsListPath))
 			{
 				trace('[Mods] modsList.txt not found, returning empty list');
 				return list;
 			}
-			
+
 			for (mod in CoolUtil.coolTextFile(modsListPath))
 			{
 				if(mod.trim().length < 1) continue;
 				var dat = mod.split("|");
-				
-				// Mod klasörü var mı kontrol et
+
 				var modFolder = dat[0];
 				if (!FileSystem.exists(Paths.mods(modFolder)) || !FileSystem.isDirectory(Paths.mods(modFolder)))
 				{
 					trace('[Mods] Mod folder not found, skipping: $modFolder');
 					continue;
 				}
-				
+
 				list.all.push(dat[0]);
 				if (dat[1] == "1")
 					list.enabled.push(dat[0]);
@@ -231,13 +402,42 @@ class Mods
 			}
 		} catch(e:Dynamic) {
 			trace('[Mods] Error parsing modsList: $e');
-			// Hata durumunda boş liste döndür
 			SafeLoader.createCrashFlag("ModsList parse error: " + Std.string(e));
 		}
 		#end
+
+		if (hybridInitialized)
+		{
+			syncWithHybridManager(list);
+		}
+
 		return list;
 	}
-	
+
+	private static function syncWithHybridManager(list:ModsList):Void
+	{
+
+		for (mod in HybridModManager.allMods)
+		{
+			if (!list.all.contains(mod.id))
+			{
+
+				list.all.push(mod.id);
+				if (mod.enabled)
+					list.enabled.push(mod.id);
+				else
+					list.disabled.push(mod.id);
+			}
+		}
+
+		for (mod in HybridModManager.allMods)
+		{
+			mod.enabled = list.enabled.contains(mod.id);
+		}
+
+		HybridModManager.activeMods = HybridModManager.allMods.filter(m -> m.enabled);
+	}
+
 	private static function updateModList()
 	{
 		#if MODS_ALLOWED
@@ -259,7 +459,7 @@ class Mods
 		} catch(e) {
 			trace(e);
 		}
-		
+
 		for (folder in getModDirectories())
 		{
 			if(folder.trim().length > 0 && FileSystem.exists(Paths.mods(folder)) && FileSystem.isDirectory(Paths.mods(folder)) &&
@@ -270,6 +470,20 @@ class Mods
 			}
 		}
 
+		#if POLYMOD_SUPPORT
+		if (hybridInitialized)
+		{
+			for (mod in HybridModManager.allMods)
+			{
+				if (mod.modType == POLYMOD_ONLY && !added.contains(mod.id))
+				{
+					added.push(mod.id);
+					list.push([mod.id, mod.enabled]);
+				}
+			}
+		}
+		#end
+
 		var fileStr:String = '';
 		for (values in list)
 		{
@@ -277,7 +491,6 @@ class Mods
 			fileStr += values[0] + '|' + (values[1] ? '1' : '0');
 		}
 
-		// modsList.txt'nin bulunacağı dizin yoksa oluştur
 		var modsListDir:String = haxe.io.Path.directory(modsListPath);
 		if (modsListDir.length > 0 && !FileSystem.exists(modsListDir))
 		{
@@ -300,11 +513,71 @@ class Mods
 	public static function loadTopMod()
 	{
 		Mods.currentModDirectory = '';
-		
+
 		#if MODS_ALLOWED
 		var list:Array<String> = Mods.parseList().enabled;
 		if(list != null && list[0] != null)
 			Mods.currentModDirectory = list[0];
 		#end
+
+		PsychModHandler.currentModDirectory = currentModDirectory;
+
+		if (hybridInitialized && currentModDirectory.length > 0)
+		{
+			HybridModManager.setCurrentMod(currentModDirectory);
+		}
+	}
+
+	public static function switchMod(modFolder:String):Void
+	{
+		currentModDirectory = modFolder;
+		PsychModHandler.currentModDirectory = modFolder;
+
+		if (hybridInitialized)
+		{
+			HybridModManager.setCurrentMod(modFolder);
+			trace('[Mods] Mod değiştirildi (hibrit): $modFolder | Tip: ${getModType(modFolder)}');
+		}
+		else
+		{
+			trace('[Mods] Mod değiştirildi (klasik): $modFolder');
+		}
+	}
+
+	public static function enableMod(modFolder:String):Bool
+	{
+		if (hybridInitialized)
+		{
+			var result = HybridModManager.enableMod(modFolder);
+			if (result) updatedOnState = false;
+			return result;
+		}
+		return false;
+	}
+
+	public static function disableMod(modFolder:String):Bool
+	{
+		if (hybridInitialized)
+		{
+			var result = HybridModManager.disableMod(modFolder);
+			if (result) updatedOnState = false;
+			return result;
+		}
+		return false;
+	}
+
+	public static function getConflictReport():Array<modcore.ModConflictResolver.ModConflict>
+	{
+		if (!hybridInitialized) return [];
+		return HybridModManager.getConflictReport();
+	}
+
+	public static function clearHybridCache():Void
+	{
+		if (hybridInitialized)
+		{
+			ModAssetBridge.clearCache();
+			trace('[Mods] Hibrit asset cache temizlendi.');
+		}
 	}
 }

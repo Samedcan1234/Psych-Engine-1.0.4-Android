@@ -16,12 +16,15 @@ import backend.Achievements;
 import backend.WeekData;
 import backend.Highscore;
 import backend.ThemeManager;
+import backend.WorkspaceSwitcher;
+import backend.AuthManager;
+import objects.ProfileBox;
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxGridOverlay;
 import flixel.util.FlxTimer;
 import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxMath;
-import backend.Song; 
+import backend.Song;
 import objects.HealthIcon;
 import flixel.ui.FlxBar;
 import DateTools;
@@ -33,6 +36,7 @@ import objects.EmojiText;
 import objects.EmojiAtlas;
 import objects.EmojiUtil;
 import objects.AIMenu;
+import states.multiplayer.OnlineModsState;
 
 #if MODS_ALLOWED
 import sys.FileSystem;
@@ -43,7 +47,7 @@ class MainMenuState extends MusicBeatState
 {
 	public static var psychEngineVersion:String = '0.1.3';
 	public static var curSelected:Int = 0;
-	
+
 	var menuItems:FlxTypedGroup<FlxSpriteGroup>;
 	var optionShit:Array<String> = [
 		'story_mode',
@@ -56,7 +60,6 @@ class MainMenuState extends MusicBeatState
 		'multiplayer',
 	];
 
-	// UI
 	var scanline:FlxBackdrop;
 	var vignette:FlxSprite;
 	var sideBar:FlxSprite;
@@ -66,8 +69,7 @@ class MainMenuState extends MusicBeatState
 	var cardIcons:Array<FlxSprite> = [];
 	var cardTitles:Array<FlxText> = [];
 	var mouseCursor:FlxSprite;
-	
-	// Mod BG System
+
 	var wallpaperBG:FlxSprite;
 	var wallpaperImages:Array<String> = [];
 	var wallpaperIndex:Int = 0;
@@ -76,13 +78,13 @@ class MainMenuState extends MusicBeatState
 	var wallpaperActive:Bool = false;
 	var wallpaperNextBG:FlxSprite;
 	var wallpaperTransitioning:Bool = false;
-	
+
 	#if VIDEOS_ALLOWED
 	var menuVideoBG:VideoSprite;
 	#end
-	
+
 	var allowMouse:Bool = true;
-	
+
 	var isChangelogOpen:Bool = false;
 	var changelogBG:FlxSprite;
 	var changelogLogo:FlxSprite;
@@ -90,7 +92,7 @@ class MainMenuState extends MusicBeatState
 	var changelogTextNotes:FlxText;
 	var changelogHint:FlxText;
 	var bumpIntensity:Float = 0;
-	
+
 	var adminPanel:AdminPanel;
 	var bgLayer1:FlxSprite;
 	var bgLayer2:FlxSprite;
@@ -110,33 +112,21 @@ class MainMenuState extends MusicBeatState
 	var descriptionTitle:FlxText;
 	var descriptionText:FlxText;
 	
-	// Profil Sistemi
-	var profilePanel:FlxSprite;
-	var profilePanelGlow:FlxSprite;
-	var profileName:FlxText;
-	var profileIcon:HealthIcon;
-	var profileLevel:FlxText;
-	var profileXPBar:FlxBar;
-	var profileXPText:FlxText;
-	var profileRank:FlxText;
-	var profileRankIcon:EmojiText;
-	
-	// İstatistik Sistemi
+	var profileBox:ProfileBox;
+
 	var statsPanel:FlxSprite;
-	var statsPanelGlow:FlxSprite; 
+	var statsPanelGlow:FlxSprite;
 	var statsTotalScore:FlxText;
 	var statsSongsPlayed:FlxText;
 	var statsPlayTime:FlxText;
 	var statsAccuracy:FlxText;
-	var statsPerfects:FlxText; 
-	
-	// İkon Değişkenleri
+	var statsPerfects:FlxText;
+
 	var scoreIcon:FlxText;
 	var songsIcon:FlxText;
 	var timeIcon:FlxText;
 	var accIcon:FlxText;
-	
-	// Diğer Değişkenler
+
 	var clockText:FlxText;
 	var dateText:FlxText;
 	var greetingText:FlxText;
@@ -155,7 +145,7 @@ class MainMenuState extends MusicBeatState
 	var versionText:FlxText;
 	var engineLogo:FlxText;
 	var engineLogoGlow:FlxSprite;
-	
+
 	var currentTheme:FlxColor = 0xFF4A90E2;
 	var themeColors:Array<FlxColor> = [0xFF4A90E2, 0xFF8B5CF6, 0xFF10B981, 0xFFF59E0B, 0xFFEC4899, 0xFF64748B];
 	var ambientPulse:Float = 0;
@@ -179,9 +169,9 @@ class MainMenuState extends MusicBeatState
 		'achievements' => 0xFF00E5FF,
 		'credits'      => 0xFF10B981,
 		'settings'     => 0xFF64748B,
-		'multiplayer'     => 0xFF64748B
+		'multiplayer'  => 0xFF64748B
 	];
-	
+
 	var menuIconMap:Map<String, String> = [
 		'story_mode'   => "⭐",
 		'freeplay'     => "🎵",
@@ -190,10 +180,8 @@ class MainMenuState extends MusicBeatState
 		'achievements' => "💎",
 		'credits'      => "",
 		'settings'     => "",
-		'multiplayer'     => ""
+		'multiplayer'  => ""
 	];
-
-	// Boş — create() içinde Language ile doldurulur
 	var menuDescriptions:Map<String, String> = [];
 	var menuTitles:Map<String, String>       = [];
 	var newsItems:Array<String>              = [];
@@ -211,7 +199,7 @@ class MainMenuState extends MusicBeatState
 			'achievements' => Language.getPhrase('menu_title_achievements', 'Achievements'),
 			'credits'      => Language.getPhrase('menu_title_credits',      'Credits'),
 			'settings'     => Language.getPhrase('menu_title_settings',     'Settings'),
-			'multiplayer'     => Language.getPhrase('menu_title_settings',     'multiplayer')
+			'multiplayer'  => Language.getPhrase('menu_title_settings',     'multiplayer')
 		];
 
 		menuDescriptions = [
@@ -222,7 +210,7 @@ class MainMenuState extends MusicBeatState
 			'achievements' => Language.getPhrase('menu_desc_achievements', 'All your achievements!\nComplete your collection.'),
 			'credits'      => Language.getPhrase('menu_desc_credits',      'Our team!\nThe people behind this project.'),
 			'settings'     => Language.getPhrase('menu_desc_settings',     'Customize the game!\nYou\'re in full control.'),
-			'multiplayer'     => Language.getPhrase('menu_desc_settings',     'Customize the game!\nYou\'re in full control.')
+			'multiplayer'  => Language.getPhrase('menu_desc_settings',     'Customize the game!\nYou\'re in full control.')
 		];
 
 		newsItems = [
@@ -233,7 +221,7 @@ class MainMenuState extends MusicBeatState
 			Language.getPhrase('news_5', 'Let\'s Gooo!')
 		];
 	}
-	
+
 	function loadWallpaperSystem()
 	{
 		if (!ClientPrefs.data.ultraModSystem) return;
@@ -286,8 +274,8 @@ class MainMenuState extends MusicBeatState
 		}
 
 		wallpaperActive = true;
-		wallpaperIndex = 0;
-		wallpaperTimer = 0;
+		wallpaperIndex  = 0;
+		wallpaperTimer  = 0;
 
 		wallpaperBG = new FlxSprite();
 		try
@@ -392,7 +380,6 @@ class MainMenuState extends MusicBeatState
 
 	override function create()
 	{
-		// Dil verilerini en başta doldur
 		_buildLanguageData();
 
 		#if mobile
@@ -404,20 +391,22 @@ class MainMenuState extends MusicBeatState
 		#end
 
 		persistentUpdate = persistentDraw = true;
-		
+
+		WorkspaceSwitcher.init();
+
 		if (!EmojiAtlas.instance.isLoaded())
 			EmojiAtlas.instance.load("emoji_atlas", 32);
 
 		bgLayer1 = new FlxSprite().makeGraphic(Std.int(FlxG.width * 1.5), Std.int(FlxG.height * 1.5), 0xFF05050a);
 		bgLayer1.screenCenter();
 		add(bgLayer1);
-		
+
 		gridBG = new FlxBackdrop(FlxGridOverlay.createGrid(60, 60, 120, 120, true, 0x08FFFFFF, 0x0));
 		gridBG.velocity.set(15, 15);
 		gridBG.alpha = 0.2;
 		gridBG.visible = ClientPrefs.data.showGridBG;
 		add(gridBG);
-		
+
 		#if VIDEOS_ALLOWED
 		if (ClientPrefs.data.menuVideo && ClientPrefs.data.menuVideoPath != null && ClientPrefs.data.menuVideoPath.trim() != '')
 		{
@@ -444,7 +433,7 @@ class MainMenuState extends MusicBeatState
 		#if VIDEOS_ALLOWED
 		}
 		#end
-		
+
 		loadWallpaperSystem();
 
 		scanline = new FlxBackdrop(null, Y, 0, 2);
@@ -452,7 +441,7 @@ class MainMenuState extends MusicBeatState
 		scanline.velocity.y = 40;
 		scanline.visible = ClientPrefs.data.showScanlines;
 		add(scanline);
-		
+
 		vignette = new FlxSprite().loadGraphic(Paths.image('vignette'));
 		vignette.setGraphicSize(FlxG.width, FlxG.height);
 		vignette.updateHitbox();
@@ -465,14 +454,14 @@ class MainMenuState extends MusicBeatState
 		topBarGlow = new FlxSprite(0, 0).makeGraphic(FlxG.width, 85, currentTheme);
 		topBarGlow.alpha = 0.15;
 		add(topBarGlow);
-		
+
 		topBar = new FlxSprite(0, 0).makeGraphic(FlxG.width, 80, 0x99000000);
 		add(topBar);
-		
+
 		topBarLine = new FlxSprite(0, 78).makeGraphic(FlxG.width, 2, currentTheme);
 		topBarLine.alpha = 0.8;
 		add(topBarLine);
-		
+
 		engineLogo = new FlxText(30, 15, 0, Language.getPhrase('main_menu_logo', 'PSYCH ENGINE ULTRA'), 36);
 		engineLogo.setFormat(Paths.font("vcr.ttf"), 36, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, 0xFF000000);
 		engineLogo.borderSize = 2;
@@ -481,22 +470,22 @@ class MainMenuState extends MusicBeatState
 		var systemStatus = new FlxText(30, 52, 0, Language.getPhrase('main_menu_edition', 'ULTRA EDITION'), 14);
 		systemStatus.setFormat(Paths.font("vcr.ttf"), 14, currentTheme, LEFT);
 		add(systemStatus);
-		
+
 		clockText = new FlxText(FlxG.width - 200, 18, 180, "", 28);
 		clockText.setFormat(Paths.font("vcr.ttf"), 28, FlxColor.WHITE, RIGHT);
 		clockText.visible = ClientPrefs.data.showClock;
 		add(clockText);
-		
+
 		dateText = new FlxText(FlxG.width - 200, 48, 180, "", 14);
 		dateText.setFormat(Paths.font("vcr.ttf"), 14, 0xFFBBBBBB, RIGHT);
 		dateText.visible = ClientPrefs.data.showClock;
 		add(dateText);
-		
+
 		greetingText = new FlxText(FlxG.width - 450, 30, 240, "", 18);
 		greetingText.setFormat(Paths.font("vcr.ttf"), 18, currentTheme, RIGHT);
 		greetingText.visible = ClientPrefs.data.showGreeting;
 		add(greetingText);
-		
+
 		updateTimeAndGreeting();
 
 		menuCards = new FlxTypedGroup<FlxSpriteGroup>();
@@ -505,23 +494,23 @@ class MainMenuState extends MusicBeatState
 		for (i in 0...optionShit.length)
 		{
 			var card = new FlxSpriteGroup();
-			
+
 			var bg = new FlxSprite(0, 0).makeGraphic(200, 280, 0xAA000000);
 			card.add(bg);
-			
+
 			var border = new FlxSprite(-2, -2).makeGraphic(204, 284, currentTheme);
 			border.alpha = 0.5;
 			card.add(border);
-			
+
 			var glow = new FlxSprite(-10, -10).makeGraphic(220, 300, currentTheme);
 			glow.alpha = 0;
 			card.add(glow);
 			cardGlows.push(glow);
-			
+
 			var iconName:String = optionShit[i];
 			if (iconName == 'changelog')    iconName = 'changelogs';
 			if (iconName == 'achievements') iconName = 'achievements';
-			
+
 			var icon = new FlxSprite(40, 30);
 			try {
 				icon.loadGraphic(Paths.image('ultra/mainmenu/' + iconName));
@@ -538,12 +527,12 @@ class MainMenuState extends MusicBeatState
 			iconEmoji.emojiScale = 1.2;
 			iconEmoji.x = 100 - 19;
 			card.add(iconEmoji);
-			
+
 			var title = new FlxText(10, 180, 180, menuTitles.get(optionShit[i]), 24);
 			title.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, 0xFF000000);
 			card.add(title);
 			cardTitles.push(title);
-			
+
 			var decoLine = new FlxSprite(20, 170).makeGraphic(160, 2, currentTheme);
 			card.add(decoLine);
 
@@ -555,97 +544,60 @@ class MainMenuState extends MusicBeatState
 
 		var descBG = new FlxSprite(FlxG.width - 420, 100).makeGraphic(400, 150, 0xAA000000);
 		add(descBG);
-		
+
 		var descLine = new FlxSprite(FlxG.width - 420, 100).makeGraphic(400, 3, currentTheme);
 		add(descLine);
-		
+
 		descriptionTitle = new FlxText(FlxG.width - 400, 115, 360, "", 32);
 		descriptionTitle.setFormat(Paths.font("vcr.ttf"), 32, currentTheme, LEFT, FlxTextBorderStyle.OUTLINE, 0xFF000000);
 		add(descriptionTitle);
-		
+
 		descriptionText = new FlxText(FlxG.width - 400, 160, 360, "", 18);
 		descriptionText.setFormat(Paths.font("vcr.ttf"), 18, 0xFFDDDDDD, LEFT);
 		add(descriptionText);
 
-		profilePanelGlow = new FlxSprite(28, 108).makeGraphic(244, 154, 0xFF10B981);
-		profilePanelGlow.alpha = 0.1;
-		add(profilePanelGlow);
-		
-		profilePanel = new FlxSprite(30, 110).makeGraphic(240, 150, 0xCC000000);
-		add(profilePanel);
-		
-		var profBorder = new FlxSprite(30, 110).makeGraphic(240, 2, 0xFF10B981);
-		add(profBorder);
-		
-		profileIcon = new HealthIcon('bf');
-		profileIcon.setGraphicSize(50, 50);
-		profileIcon.updateHitbox();
-		profileIcon.setPosition(45, 130);
-		add(profileIcon);
-		
-		profileName = new FlxText(105, 135, 150, playerName, 22);
-		profileName.setFormat(Paths.font("vcr.ttf"), 22, FlxColor.WHITE, LEFT);
-		add(profileName);
-		
-		profileRankIcon = new EmojiText(105, 165, 40, "🥇", 0);
-		profileRankIcon.emojiScale = 0.65;
-		add(profileRankIcon);
-		
-		profileRank = new FlxText(130, 167, 100, Language.getPhrase('rank_rookie', 'ROOKIE'), 14);
-		profileRank.setFormat(Paths.font("vcr.ttf"), 14, 0xFFFFD700, LEFT);
-		add(profileRank);
-		
-		profileLevel = new FlxText(105, 185, 150, Language.getPhrase('profile_level', 'Level') + ": 1", 14);
-		profileLevel.setFormat(Paths.font("vcr.ttf"), 14, 0xFF888888, LEFT);
-		add(profileLevel);
-		
-		profileXPBar = new FlxBar(45, 215, LEFT_TO_RIGHT, 210, 8, null, "", 0, 100, true);
-		profileXPBar.createFilledBar(0xFF222222, 0xFF10B981, true, 0xFF000000);
-		add(profileXPBar);
-		
-		profileXPText = new FlxText(45, 228, 210, "XP: 0%", 12);
-		profileXPText.setFormat(Paths.font("vcr.ttf"), 12, 0xFF888888, CENTER);
-		add(profileXPText);
+		// ==========================================
+		//  PROFILEBOX - OFFLINE İSE HİÇ OLUŞTURMA!
+		// ==========================================
+		if (AuthManager.isLoggedIn && ClientPrefs.data.showProfilePanel)
+		{
+			profileBox = new ProfileBox(30, 110);
+			add(profileBox);
+		}
 
-		var _showProfile:Bool = ClientPrefs.data.showProfilePanel;
-		profilePanelGlow.visible = _showProfile;
-		profilePanel.visible     = _showProfile;
-		profBorder.visible       = _showProfile;
-		profileIcon.visible      = _showProfile;
-		profileName.visible      = _showProfile;
-		profileRankIcon.visible  = _showProfile;
-		profileRank.visible      = _showProfile;
-		profileLevel.visible     = _showProfile;
-		profileXPBar.visible     = _showProfile;
-		profileXPText.visible    = _showProfile;
-		
-		statsPanelGlow = new FlxSprite(28, 278).makeGraphic(244, 164, 0xFFF59E0B);
+		// ==========================================
+		//  STATS PANELİ
+		// ==========================================
+		// Stats panelinin Y pozisyonu ProfileBox'a göre ayarlanıyor
+		var statsY:Int = (profileBox != null) ? 210 : 110;
+
+		statsPanelGlow = new FlxSprite(28, statsY - 2).makeGraphic(244, 164, 0xFFF59E0B);
 		statsPanelGlow.alpha = 0.1;
 		add(statsPanelGlow);
-		
-		statsPanel = new FlxSprite(30, 280).makeGraphic(240, 160, 0xCC000000);
+
+		statsPanel = new FlxSprite(30, statsY).makeGraphic(240, 160, 0xCC000000);
 		add(statsPanel);
-		
-		var statsBorder = new FlxSprite(30, 280).makeGraphic(240, 2, 0xFFF59E0B);
+
+		var statsBorder = new FlxSprite(30, statsY).makeGraphic(240, 2, 0xFFF59E0B);
 		add(statsBorder);
-		
-		statsTotalScore = new FlxText(50, 300, 200, "SCORE: 0", 18);
+
+		statsTotalScore = new FlxText(50, statsY + 20, 200, "SCORE: 0", 18);
 		statsTotalScore.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, LEFT);
 		add(statsTotalScore);
-		
-		statsSongsPlayed = new FlxText(50, 330, 200, "SONGS: 0", 16);
+
+		statsSongsPlayed = new FlxText(50, statsY + 50, 200, "SONGS: 0", 16);
 		statsSongsPlayed.setFormat(Paths.font("vcr.ttf"), 16, 0xFFCCCCCC, LEFT);
 		add(statsSongsPlayed);
-		
-		statsAccuracy = new FlxText(50, 360, 200, "ACC: 0%", 16);
+
+		statsAccuracy = new FlxText(50, statsY + 80, 200, "ACC: 0%", 16);
 		statsAccuracy.setFormat(Paths.font("vcr.ttf"), 16, 0xFF10B981, LEFT);
 		add(statsAccuracy);
-		
-		statsPerfects = new FlxText(50, 390, 200, "FC: 0", 16);
+
+		statsPerfects = new FlxText(50, statsY + 110, 200, "FC: 0", 16);
 		statsPerfects.setFormat(Paths.font("vcr.ttf"), 16, 0xFFFFD700, LEFT);
 		add(statsPerfects);
-		
-		statsPlayTime = new FlxText(50, 420, 200, "TIME: 0", 14);
+
+		statsPlayTime = new FlxText(50, statsY + 140, 200, "TIME: 0", 14);
 		statsPlayTime.setFormat(Paths.font("vcr.ttf"), 14, 0xFF888888, LEFT);
 		add(statsPlayTime);
 
@@ -661,32 +613,37 @@ class MainMenuState extends MusicBeatState
 
 		loadStats();
 
-		lastPlayedPanel = new FlxSprite(30, 460).makeGraphic(240, 120, 0xCC000000);
+		// ==========================================
+		//  LAST PLAYED PANELİ
+		// ==========================================
+		var lastPlayedY:Int = statsY + 180;
+
+		lastPlayedPanel = new FlxSprite(30, lastPlayedY).makeGraphic(240, 120, 0xCC000000);
 		add(lastPlayedPanel);
-		
-		var lastBorder = new FlxSprite(30, 460).makeGraphic(240, 2, 0xFF8B5CF6);
+
+		var lastBorder = new FlxSprite(30, lastPlayedY).makeGraphic(240, 2, 0xFF8B5CF6);
 		add(lastBorder);
-		
-		lastPlayedSong = new FlxText(45, 475, 210, Language.getPhrase('last_played_none', 'NOT PLAYED'), 18);
+
+		lastPlayedSong = new FlxText(45, lastPlayedY + 15, 210, Language.getPhrase('last_played_none', 'NOT PLAYED'), 18);
 		lastPlayedSong.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, LEFT);
 		add(lastPlayedSong);
-		
-		lastPlayedDifficulty = new FlxText(45, 505, 210, "HARD", 14);
+
+		lastPlayedDifficulty = new FlxText(45, lastPlayedY + 45, 210, "HARD", 14);
 		lastPlayedDifficulty.setFormat(Paths.font("vcr.ttf"), 14, 0xFFFF5555, LEFT);
 		add(lastPlayedDifficulty);
-		
-		lastPlayedScore = new FlxText(45, 520, 210, Language.getPhrase('score_label', 'Score') + ": 0", 12);
+
+		lastPlayedScore = new FlxText(45, lastPlayedY + 60, 210, Language.getPhrase('score_label', 'Score') + ": 0", 12);
 		lastPlayedScore.setFormat(Paths.font("vcr.ttf"), 12, 0xFF888888, LEFT);
 		add(lastPlayedScore);
-		
-		quickPlayButton = new FlxSprite(45, 535).makeGraphic(210, 35, 0xFF8B5CF6);
+
+		quickPlayButton = new FlxSprite(45, lastPlayedY + 75).makeGraphic(210, 35, 0xFF8B5CF6);
 		add(quickPlayButton);
-		
-		quickPlayText = new FlxText(45, 542, 210, Language.getPhrase('quick_play_replay', 'REPLAY'), 16);
+
+		quickPlayText = new FlxText(45, lastPlayedY + 82, 210, Language.getPhrase('quick_play_replay', 'REPLAY'), 16);
 		quickPlayText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER);
 		add(quickPlayText);
-		
-		quickPlayGlow = new FlxSprite(43, 533).makeGraphic(214, 39, 0xFF8B5CF6);
+
+		quickPlayGlow = new FlxSprite(43, lastPlayedY + 73).makeGraphic(214, 39, 0xFF8B5CF6);
 		quickPlayGlow.alpha = 0;
 		add(quickPlayGlow);
 
@@ -704,11 +661,11 @@ class MainMenuState extends MusicBeatState
 
 		newsPanel = new FlxSprite(0, FlxG.height - 110).makeGraphic(FlxG.width, 40, 0x66000000);
 		add(newsPanel);
-		
+
 		newsTitle = new FlxText(20, FlxG.height - 100, 100, Language.getPhrase('news_label', 'NOTICE:'), 16);
 		newsTitle.setFormat(Paths.font("vcr.ttf"), 16, currentTheme, LEFT);
 		add(newsTitle);
-		
+
 		newsText = new FlxText(130, FlxG.height - 100, FlxG.width - 150, newsItems[0], 16);
 		newsText.setFormat(Paths.font("vcr.ttf"), 16, 0xFFEEEEEE, LEFT);
 		add(newsText);
@@ -721,38 +678,42 @@ class MainMenuState extends MusicBeatState
 		bottomBarGlow = new FlxSprite(0, FlxG.height - 70).makeGraphic(FlxG.width, 75, currentTheme);
 		bottomBarGlow.alpha = 0.1;
 		add(bottomBarGlow);
-		
+
 		bottomBar = new FlxSprite(0, FlxG.height - 70).makeGraphic(FlxG.width, 70, 0xCC000000);
 		add(bottomBar);
-		
+
 		bottomLine = new FlxSprite(0, FlxG.height - 70).makeGraphic(FlxG.width, 2, currentTheme);
 		add(bottomLine);
-		
+
 		versionText = new FlxText(FlxG.width - 300, FlxG.height - 45, 280,
 			Language.getPhrase('main_menu_version', 'Psych Engine Ultra') + " " + psychEngineVersion, 16);
 		versionText.setFormat(Paths.font("vcr.ttf"), 16, 0xFF888888, RIGHT);
 		add(versionText);
 		versionText.visible = ClientPrefs.data.showVersionText;
-		
+
+		var wsHint = new FlxText(FlxG.width - 300, FlxG.height - 65, 280,
+			Language.getPhrase('workspace_hint', 'SHIFT → Workspace'), 13);
+		wsHint.setFormat(Paths.font("vcr.ttf"), 13, 0xFF555555, RIGHT);
+		add(wsHint);
+
 		camFollow    = new FlxObject(0, 0, 1, 1);
 		camFollowPos = new FlxObject(0, 0, 1, 1);
 		add(camFollow);
 		add(camFollowPos);
-		
+
 		camFollow.screenCenter();
 		camFollowPos.screenCenter();
 		FlxG.camera.follow(camFollowPos, null, 1);
 
 		changeItem();
-		
-		adminPanel = new AdminPanel();
-		add(adminPanel); 
 
-		// AI
+		adminPanel = new AdminPanel();
+		add(adminPanel);
+
 		AIMenu.addToStage();
 
 		FlxG.camera.fade(FlxColor.BLACK, 0.5, true);
-		
+
 		addTouchPad("LEFT_RIGHT", "A_B_E");
 		super.create();
 	}
@@ -762,39 +723,35 @@ class MainMenuState extends MusicBeatState
 		super.beatHit();
 		if (adminPanel != null)
 			adminPanel.onBeat();
-		
+
 		if (isChangelogOpen && changelogLogo != null)
 		{
-			var bumpSize = 0.7 + bumpIntensity; 
+			var bumpSize = 0.7 + bumpIntensity;
 			changelogLogo.scale.set(bumpSize, bumpSize);
 			FlxTween.cancelTweensOf(changelogLogo.scale);
 			FlxTween.tween(changelogLogo.scale, {x: 0.7, y: 0.7}, 0.3, {ease: FlxEase.quadOut});
 		}
 	}
-	
-	// ═══════════════════════════════════════════════════════════════
-	// CHANGELOG
-	// ═══════════════════════════════════════════════════════════════
 
 	function openChangelog()
 	{
 		isChangelogOpen = true;
-		
+
 		changelogBG = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		changelogBG.alpha = 0;
 		changelogBG.scrollFactor.set();
 		add(changelogBG);
-		
+
 		changelogLogo = new FlxSprite().loadGraphic(Paths.image('pet/peulogo'));
 		changelogLogo.antialiasing = ClientPrefs.data.antialiasing;
-		changelogLogo.setGraphicSize(Std.int(changelogLogo.width * 0.04)); 
+		changelogLogo.setGraphicSize(Std.int(changelogLogo.width * 0.04));
 		changelogLogo.updateHitbox();
 		changelogLogo.screenCenter(X);
-		changelogLogo.y = 30; 
+		changelogLogo.y = 30;
 		changelogLogo.alpha = 0;
 		changelogLogo.scrollFactor.set();
 		add(changelogLogo);
-		
+
 		changelogTextTitle = new FlxText(0, changelogLogo.y + changelogLogo.height + 20,
 			FlxG.width, Language.getPhrase('changelog_title', 'Psych Engine Ultra'), 32);
 		changelogTextTitle.setFormat(Paths.font("vcr.ttf"), 32, 0xFF00E5FF, CENTER, FlxTextBorderStyle.OUTLINE, 0xFF000000);
@@ -805,21 +762,21 @@ class MainMenuState extends MusicBeatState
 
 		var notes = Language.getPhrase('changelog_notes',
 			"\n- Interface Renewed!\n- Profile System Updated\n- Menu Themes Added.\n- Mod Support Optimized.\n- Based on P.E Ultra 0.5\n- Some Bugfixes.\n \n- CURRENT VERSION: Ultra Edition\n Status: Up to Date");
-		
+
 		changelogTextNotes = new FlxText(0, changelogTextTitle.y + 40, FlxG.width - 200, notes, 22);
 		changelogTextNotes.setFormat(Paths.font("vcr.ttf"), 22, FlxColor.WHITE, CENTER);
 		changelogTextNotes.screenCenter(X);
 		changelogTextNotes.alpha = 0;
 		changelogTextNotes.scrollFactor.set();
 		add(changelogTextNotes);
-		
+
 		changelogHint = new FlxText(0, FlxG.height - 40, FlxG.width,
 			Language.getPhrase('changelog_hint', 'Press ESC or ENTER to close'), 18);
 		changelogHint.setFormat(Paths.font("vcr.ttf"), 18, 0xFF888888, CENTER);
 		changelogHint.alpha = 0;
 		changelogHint.scrollFactor.set();
 		add(changelogHint);
-		
+
 		FlxTween.tween(changelogBG,        {alpha: 0.90}, 0.4);
 		FlxTween.tween(changelogLogo,      {alpha: 1, y: 50}, 0.5, {ease: FlxEase.backOut,  startDelay: 0.1});
 		FlxTween.tween(changelogTextTitle, {alpha: 1},    0.5, {ease: FlxEase.quadOut, startDelay: 0.2});
@@ -830,7 +787,7 @@ class MainMenuState extends MusicBeatState
 	function closeChangelog()
 	{
 		FlxG.sound.play(Paths.sound('cancelMenu'));
-		
+
 		FlxTween.tween(changelogBG,        {alpha: 0}, 0.3);
 		FlxTween.tween(changelogLogo,      {alpha: 0, "scale.x": 0.5, "scale.y": 0.5}, 0.3);
 		FlxTween.tween(changelogTextTitle, {alpha: 0}, 0.3);
@@ -840,21 +797,17 @@ class MainMenuState extends MusicBeatState
 				remove(changelogBG);       remove(changelogLogo);
 				remove(changelogTextTitle); remove(changelogTextNotes);
 				remove(changelogHint);
-				
+
 				changelogBG.destroy();        changelogLogo.destroy();
 				changelogTextTitle.destroy(); changelogTextNotes.destroy();
 				changelogHint.destroy();
-				
+
 				isChangelogOpen  = false;
-				selectedSomethin = false; 
+				selectedSomethin = false;
 			}
 		});
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// PARTİKÜLLER
-	// ═══════════════════════════════════════════════════════════════
-	
 	function createParticles()
 	{
 		if (!ClientPrefs.data.showParticles) return;
@@ -870,7 +823,7 @@ class MainMenuState extends MusicBeatState
 			particles.push(p);
 		}
 	}
-	
+
 	function createFloatingOrbs()
 	{
 		if (!ClientPrefs.data.showFloatingOrbs) return;
@@ -884,22 +837,21 @@ class MainMenuState extends MusicBeatState
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// İSTATİSTİKLER
-	// ═══════════════════════════════════════════════════════════════
-	
+	// ==========================================
+	//  STATS - PROFIL KISMI PROFILEBOX'A TAŞINDI
+	// ==========================================
 	function loadStats()
 	{
 		var totalScore:Int    = 0;
 		var songsPlayed:Int   = 0;
 		var totalAccuracy:Float = 0;
 		var fcCount:Int       = 0;
-		
+
 		for (week in WeekData.weeksList)
 		{
 			var weekData = WeekData.weeksLoaded.get(week);
 			if (weekData == null) continue;
-			
+
 			for (song in weekData.songs)
 			{
 				for (diff in 0...3)
@@ -909,7 +861,7 @@ class MainMenuState extends MusicBeatState
 					{
 						totalScore   += score;
 						songsPlayed++;
-						
+
 						var acc = Highscore.getRating(song[0], diff);
 						if (acc > 0) totalAccuracy += acc;
 						if (Highscore.getRating(song[0], diff) >= 100) fcCount++;
@@ -917,91 +869,50 @@ class MainMenuState extends MusicBeatState
 				}
 			}
 		}
-		
+
 		FlxG.save.data.totalScore  = totalScore;
 		FlxG.save.data.songsPlayed = songsPlayed;
 		FlxG.save.data.fcCount     = fcCount;
 		FlxG.save.flush();
-		
+
 		statsTotalScore.text  = formatNumber(totalScore);
 		statsSongsPlayed.text = songsPlayed + " " + Language.getPhrase('stats_songs', 'Songs');
-		
+
 		var avgAcc = songsPlayed > 0 ? totalAccuracy / songsPlayed : 0;
 		statsAccuracy.text = "%" + FlxMath.roundDecimal(avgAcc, 2);
-		
+
 		if (avgAcc >= 95)      statsAccuracy.color = 0xFF10B981;
 		else if (avgAcc >= 85) statsAccuracy.color = 0xFFF59E0B;
 		else                   statsAccuracy.color = 0xFFFF5555;
-		
+
 		statsPerfects.text = "FC: " + fcCount;
-		
+
 		var totalMinutes = songsPlayed * 3;
 		var hours   = Math.floor(totalMinutes / 60);
 		var minutes = totalMinutes % 60;
-		
+
 		if (hours > 0)
 			statsPlayTime.text = hours   + " " + Language.getPhrase('stats_hours',   'hr') + " "
 			                   + minutes + " " + Language.getPhrase('stats_minutes', 'min');
 		else
 			statsPlayTime.text = minutes + " " + Language.getPhrase('stats_minutes', 'min');
-		
-		var level      = Math.floor(totalScore / 50000) + 1;
-		profileLevel.text = Language.getPhrase('profile_level', 'Level') + ": " + level;
-		
-		var xpProgress = (totalScore % 50000) / 50000 * 100;
-		profileXPBar.value = xpProgress;
-		profileXPText.text = Std.int(xpProgress) + "% → Lv." + (level + 1);
-		
-		updatePlayerRank(totalScore);
-	}
-	
-	function updatePlayerRank(score:Int)
-	{
-		if (score >= 1000000)
+
+		// ProfileBox varsa onu da güncelle
+		if (profileBox != null)
 		{
-			profileRank.text  = Language.getPhrase('rank_diamond', 'DIAMOND');
-			profileRank.color = 0xFFB9F2FF;
-			profileRankIcon.setText("💎");
-		}
-		else if (score >= 500000)
-		{
-			profileRank.text  = Language.getPhrase('rank_plat', 'PLATINUM');
-			profileRank.color = 0xFFE5E4E2;
-			profileRankIcon.setText("⭐");
-		}
-		else if (score >= 250000)
-		{
-			profileRank.text  = Language.getPhrase('rank_gold', 'GOLD');
-			profileRank.color = 0xFFFFD700;
-			profileRankIcon.setText("🥇");
-		}
-		else if (score >= 100000)
-		{
-			profileRank.text  = Language.getPhrase('rank_silver', 'SILVER');
-			profileRank.color = 0xFFC0C0C0;
-			profileRankIcon.setText("🥈");
-		}
-		else
-		{
-			profileRank.text  = Language.getPhrase('rank_bronze', 'BRONZE');
-			profileRank.color = 0xFFCD7F32;
-			profileRankIcon.setText("🥉");
+			profileBox.updateStats(totalScore, songsPlayed, avgAcc, fcCount);
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// SON OYNANAN
-	// ═══════════════════════════════════════════════════════════════
-	
 	function loadLastPlayed()
 	{
 		if (FlxG.save.data.lastPlayedSong != null && FlxG.save.data.lastPlayedSong != "")
 		{
 			lastPlayedSong.text = FlxG.save.data.lastPlayedSong;
-			
+
 			if (FlxG.save.data.lastPlayedScore != null)
 				lastPlayedScore.text = Language.getPhrase('score_label', 'Score') + ": " + formatNumber(FlxG.save.data.lastPlayedScore);
-			
+
 			if (FlxG.save.data.lastPlayedDifficulty != null)
 			{
 				var diff:Int = FlxG.save.data.lastPlayedDifficulty;
@@ -1011,7 +922,7 @@ class MainMenuState extends MusicBeatState
 					Language.getPhrase('diff_hard',   'HARD')
 				];
 				var diffColors = [0xFF10B981, 0xFFF59E0B, 0xFFFF5555];
-				
+
 				if (diff >= 0 && diff < diffNames.length) {
 					lastPlayedDifficulty.text  = diffNames[diff];
 					lastPlayedDifficulty.color = diffColors[diff];
@@ -1026,13 +937,13 @@ class MainMenuState extends MusicBeatState
 			lastPlayedSong.text      = Language.getPhrase('last_played_none',  'Not played yet');
 			lastPlayedDifficulty.text = "-";
 			lastPlayedScore.text     = Language.getPhrase('last_played_empty', 'Time to Play!');
-			
+
 			quickPlayText.text  = Language.getPhrase('quick_play_none', 'NONE');
 			quickPlayText.color = 0xFF555555;
 			quickPlayButton.color = 0xFF222222;
 		}
 	}
-	
+
 	function playLastSong()
 	{
 		selectedSomethin = true;
@@ -1043,7 +954,7 @@ class MainMenuState extends MusicBeatState
 		var songPath         = Paths.formatToSongPath(songName);
 		var pooped:String    = Highscore.formatSong(songPath, difficulty);
 
-		try 
+		try
 		{
 			PlayState.SONG           = Song.loadFromJson(pooped, songPath);
 			PlayState.isStoryMode    = false;
@@ -1055,10 +966,11 @@ class MainMenuState extends MusicBeatState
 			});
 
 			FlxTween.tween(lastPlayedPanel, {x: FlxG.width + 500}, 0.5, {ease: FlxEase.backIn});
-			FlxTween.tween(profilePanel,    {x: FlxG.width + 500}, 0.5, {ease: FlxEase.backIn});
+			if (profileBox != null)
+				FlxTween.tween(profileBox, {x: -300}, 0.5, {ease: FlxEase.backIn});
 			FlxTween.tween(statsPanel,      {x: FlxG.width + 500}, 0.5, {ease: FlxEase.backIn});
-		} 
-		catch(e:Dynamic) 
+		}
+		catch(e:Dynamic)
 		{
 			trace('Error loading song: $e');
 			selectedSomethin = false;
@@ -1068,10 +980,6 @@ class MainMenuState extends MusicBeatState
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// YARDIMCILAR
-	// ═══════════════════════════════════════════════════════════════
-	
 	function formatNumber(num:Int):String
 	{
 		var str    = Std.string(num);
@@ -1085,15 +993,15 @@ class MainMenuState extends MusicBeatState
 		}
 		return result;
 	}
-	
+
 	function updateTimeAndGreeting()
 	{
 		var now    = Date.now();
 		var hour   = now.getHours();
 		var minute = now.getMinutes();
-		
+
 		clockText.text = StringTools.lpad(Std.string(hour), "0", 2) + ":" + StringTools.lpad(Std.string(minute), "0", 2);
-		
+
 		var days = [
 			Language.getPhrase('day_sun', 'Sunday'),
 			Language.getPhrase('day_mon', 'Monday'),
@@ -1118,19 +1026,15 @@ class MainMenuState extends MusicBeatState
 			Language.getPhrase('month_dec', 'December')
 		];
 		dateText.text = days[now.getDay()] + ", " + now.getDate() + " " + months[now.getMonth()];
-		
+
 		var greeting = "";
 		if      (hour >= 5  && hour < 12) greeting = Language.getPhrase('greeting_morning', 'Good morning');
 		else if (hour >= 12 && hour < 18) greeting = Language.getPhrase('greeting_day',     'Good day');
 		else if (hour >= 18 && hour < 22) greeting = Language.getPhrase('greeting_evening', 'Good evening');
 		else                               greeting = Language.getPhrase('greeting_night',   'Good night');
-		
+
 		greetingText.text = greeting + ", " + playerName + "!";
 	}
-
-	// ═══════════════════════════════════════════════════════════════
-	// UPDATE
-	// ═══════════════════════════════════════════════════════════════
 
 	override function update(elapsed:Float)
 	{
@@ -1141,15 +1045,15 @@ class MainMenuState extends MusicBeatState
 			if (adminPanel.isOpen) adminPanel.closePanel();
 			else                   adminPanel.openPanel();
 		}
-		
+
 		if (adminPanel.isOpen)
 		{
 			adminPanel.handleInput(controls);
 			adminPanel.handleUpdate(elapsed);
 			if (controls.BACK) adminPanel.closePanel();
-			return; 
+			return;
 		}
-		
+
 		ambientPulse    += elapsed;
 		breathingEffect += elapsed * 2;
 
@@ -1161,19 +1065,23 @@ class MainMenuState extends MusicBeatState
 			FlxMath.lerp(camFollowPos.x, camFollow.x, lerpVal),
 			FlxMath.lerp(camFollowPos.y, camFollow.y, lerpVal)
 		);
-		
-		updateParticles(elapsed);
+
 		updateParticles(elapsed);
 		updateWallpaper(elapsed);
 		updateNews(elapsed);
-		
+
 		if (Math.floor(ambientPulse) % 30 == 0 && Math.floor(ambientPulse) > 0)
 			updateTimeAndGreeting();
+
+		if (!isChangelogOpen && !selectedSomethin)
+			WorkspaceSwitcher.handleInput(elapsed);
+
+		if (WorkspaceSwitcher.isOpen) return;
 
 		if (isChangelogOpen)
 		{
 			if (controls.BACK || controls.ACCEPT) closeChangelog();
-			return; 
+			return;
 		}
 
 		if (!selectedSomethin)
@@ -1182,7 +1090,7 @@ class MainMenuState extends MusicBeatState
 
 			if (controls.UI_LEFT_P)  changeItem(-1);
 			if (controls.UI_RIGHT_P) changeItem(1);
-			
+
 			if (controls.BACK)
 			{
 				selectedSomethin = true;
@@ -1197,9 +1105,9 @@ class MainMenuState extends MusicBeatState
 			else if (controls.justPressed('debug_1') || touchPad.buttonE.justPressed)
 			{
 				selectedSomethin = true;
-				MusicBeatState.switchState(new MultiplayerState());
+				MusicBeatState.switchState(new OnlineModsState());
 			}
-			
+
 			if (FlxG.save.data.lastPlayedSong != null && FlxG.save.data.lastPlayedSong != "")
 			{
 				if (FlxG.mouse.overlaps(quickPlayButton))
@@ -1219,27 +1127,23 @@ class MainMenuState extends MusicBeatState
 		updateCardPositions(elapsed, lerpVal);
 		if (ClientPrefs.data.showParallax) updateParallax(elapsed, lerpVal);
 		updateFloatingOrbs(elapsed);
-		
-		if (profilePanelGlow != null) profilePanelGlow.alpha = 0.1 + Math.sin(ambientPulse * 2) * 0.05;
+
+		// ProfileBox glow animasyonu yok - kendi içinde hallediyor
 		if (statsPanelGlow   != null) statsPanelGlow.alpha   = 0.1 + Math.sin(ambientPulse * 2 + 1) * 0.05;
 		if (topBarGlow       != null) topBarGlow.alpha       = 0.15 + Math.sin(ambientPulse) * 0.05;
 		if (bottomBarGlow    != null) bottomBarGlow.alpha    = 0.1 + Math.sin(ambientPulse + 2) * 0.05;
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// KART POZİSYONLARI
-	// ═══════════════════════════════════════════════════════════════
-
 	function updateCardPositions(elapsed:Float, lerpVal:Float)
 	{
 		var centerX = FlxG.width / 2;
 		var spacing = 240;
-		
+
 		menuCards.forEach(function(card:FlxSpriteGroup)
 		{
 			var targetX = centerX - 100 + (card.ID - curSelected) * spacing;
 			var targetY = FlxG.height / 2 - 140;
-			
+
 			if (card.ID == curSelected)
 			{
 				targetY -= 20;
@@ -1253,12 +1157,12 @@ class MainMenuState extends MusicBeatState
 				card.alpha = FlxMath.lerp(card.alpha, 0.4, lerpVal);
 				cardGlows[card.ID].alpha = 0;
 			}
-			
+
 			card.x = FlxMath.lerp(card.x, targetX, lerpVal);
 			card.y = FlxMath.lerp(card.y, targetY, lerpVal);
 		});
 	}
-	
+
 	function updateParallax(elapsed:Float, lerpVal:Float)
 	{
 		var mouseOffsetX = (FlxG.mouse.screenX - FlxG.width / 2) / FlxG.width;
@@ -1268,7 +1172,7 @@ class MainMenuState extends MusicBeatState
 		bgLayer2.x = FlxMath.lerp(bgLayer2.x, -50  - mouseOffsetX * 60, lerpVal);
 		bgLayer2.y = FlxMath.lerp(bgLayer2.y, -50  - mouseOffsetY * 60, lerpVal);
 	}
-	
+
 	function updateParticles(elapsed:Float)
 	{
 		for (p in particles)
@@ -1281,7 +1185,7 @@ class MainMenuState extends MusicBeatState
 			p.alpha = 0.1 + Math.sin(ambientPulse + p.x * 0.01) * 0.1;
 		}
 	}
-	
+
 	function updateNews(elapsed:Float)
 	{
 		newsTimer += elapsed;
@@ -1313,10 +1217,6 @@ class MainMenuState extends MusicBeatState
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// MENÜ DEĞIŞTIRME
-	// ═══════════════════════════════════════════════════════════════
-	
 	function changeItem(change:Int = 0)
 	{
 		curSelected += change;
@@ -1327,7 +1227,7 @@ class MainMenuState extends MusicBeatState
 
 		var choice:String    = optionShit[curSelected];
 		var newColor:FlxColor = menuColorMap.exists(choice) ? menuColorMap.get(choice) : 0xFF333333;
-		
+
 		currentTheme = newColor;
 		if (!ClientPrefs.data.menuVideo)
 			FlxTween.color(bgLayer2, 0.5, bgLayer2.color, newColor);
@@ -1335,14 +1235,14 @@ class MainMenuState extends MusicBeatState
 		FlxTween.color(topBarGlow,       0.3, topBarGlow.color,       newColor);
 		FlxTween.color(bottomLine,       0.3, bottomLine.color,       newColor);
 		FlxTween.color(descriptionTitle, 0.3, descriptionTitle.color, newColor);
-		
+
 		descriptionTitle.text = menuTitles.get(choice);
 		descriptionText.text  = menuDescriptions.get(choice);
-		
+
 		descriptionText.alpha = 0;
 		descriptionText.y     = 170;
 		FlxTween.tween(descriptionText, {alpha: 1, y: 160}, 0.3, {ease: FlxEase.quadOut});
-		
+
 		camFollow.x = FlxG.width / 2 + (curSelected - (optionShit.length / 2)) * 50;
 	}
 
@@ -1350,11 +1250,11 @@ class MainMenuState extends MusicBeatState
 	{
 		selectedSomethin = true;
 		FlxG.sound.play(Paths.sound('confirmMenu'));
-		
+
 		if (optionShit[curSelected] == 'changelog')
 		{
 			openChangelog();
-			return; 
+			return;
 		}
 
 		menuCards.forEach(function(card:FlxSpriteGroup)
@@ -1383,9 +1283,16 @@ class MainMenuState extends MusicBeatState
 			}
 		});
 
+		// ==========================================
+		//  ÇIKIŞ ANİMASYONLARI - ProfileBox dahil
+		// ==========================================
 		FlxTween.tween(topBar,          {y: -100},              0.5, {ease: FlxEase.backIn});
 		FlxTween.tween(bottomBar,       {y: FlxG.height + 100}, 0.5, {ease: FlxEase.backIn});
-		FlxTween.tween(profilePanel,    {x: -300},              0.5, {ease: FlxEase.backIn});
+
+		// ProfileBox varsa animasyon ile kaldır
+		if (profileBox != null)
+			FlxTween.tween(profileBox,  {x: -300}, 0.5, {ease: FlxEase.backIn});
+
 		FlxTween.tween(statsPanel,      {x: -300},              0.5, {ease: FlxEase.backIn, startDelay: 0.05});
 		FlxTween.tween(lastPlayedPanel, {x: -300},              0.5, {ease: FlxEase.backIn, startDelay: 0.1});
 		FlxTween.tween(newsPanel,       {y: FlxG.height + 100}, 0.5, {ease: FlxEase.backIn});
@@ -1413,12 +1320,13 @@ class MainMenuState extends MusicBeatState
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// DESTROY
-	// ═══════════════════════════════════════════════════════════════
-
 	override function destroy()
 	{
+		if (WorkspaceSwitcher.isOpen)
+		{
+			WorkspaceSwitcher.forceClose();
+		}
+
 		#if VIDEOS_ALLOWED
 		if (menuVideoBG != null)
 		{

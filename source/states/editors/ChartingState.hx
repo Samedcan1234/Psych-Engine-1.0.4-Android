@@ -7,6 +7,11 @@ import flixel.util.FlxSpriteUtil;
 import flixel.util.FlxStringUtil;
 import flixel.util.FlxDestroyUtil;
 import flixel.input.keyboard.FlxKey;
+import backend.VoiceSystem;
+import backend.VoicePreset;
+
+import flixel.text.FlxText;
+import flixel.util.FlxColor;
 
 import lime.utils.Assets;
 import lime.media.AudioBuffer;
@@ -140,6 +145,26 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 	var infoBox:PsychUIBox;
 	var infoBoxPosition:FlxPoint = FlxPoint.get(1000, 360);
 	var upperBox:PsychUIBox;
+	
+
+	var voicePresetNames:Array<String>;
+	
+	var voiceIndexBF:Int = 0;
+	var voiceIndexDad:Int = 0;
+	var voiceIndexGF:Int = 0;
+
+	var voiceTextBF:FlxText;
+	var voiceTextDad:FlxText;
+	var voiceTextGF:FlxText;
+	
+	
+	var bfVoiceIndex:Int = 0;
+	var dadVoiceIndex:Int = 0;
+	var gfVoiceIndex:Int = 0;
+
+	var bfVoiceText:FlxText;
+	var dadVoiceText:FlxText;
+	var gfVoiceText:FlxText;
 	
 	var camUI:FlxCamera;
 
@@ -382,11 +407,13 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		infoBox.getTab('Information').menu.add(infoText);
 		add(infoBox);
 
-		mainBox = new PsychUIBox(mainBoxPosition.x, mainBoxPosition.y, 300, 280, ['Charting', 'Data', 'Events', 'Note', 'Section', 'Song']);
+		mainBox = new PsychUIBox(mainBoxPosition.x, mainBoxPosition.y, 300, 280, ['Charting', 'Data', 'Events', 'Note', 'Section', 'Song', 'Voice']);
 		mainBox.selectedName = 'Song';
 		mainBox.scrollFactor.set();
 		mainBox.cameras = [camUI];
 		add(mainBox);
+		
+		addVoiceTab();
 
 		autoSaveIcon = new FlxSprite(50).loadGraphic(Paths.image('editors/autosave'));
 		autoSaveIcon.screenCenter(Y);
@@ -434,6 +461,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		addNoteTab();
 		addSectionTab();
 		addSongTab();
+		addVoiceTab();
 		
 		////// for upper box
 		addFileTab();
@@ -544,11 +572,107 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 			"Ctrl + S - Quicksave",
 		].join('\n');
 		fullTipText.screenCenter();
+		addVoiceTab();
 		add(fullTipText);
 		addTouchPad('LEFT_FULL', 'CHART_EDITOR');
 		super.create();
 	}
 
+	function changeVoicePreset(character:String, delta:Int):Void
+	{
+		if (voicePresetNames == null || voicePresetNames.length < 1) return;
+
+		switch (character)
+		{
+			case 'boyfriend':
+				voiceIndexBF = wrapIndex(voiceIndexBF + delta, voicePresetNames.length);
+				if (voiceTextBF != null)
+					voiceTextBF.text = voicePresetNames[voiceIndexBF];
+				setVoiceInSong('boyfriend', voicePresetNames[voiceIndexBF]);
+
+			case 'dad':
+				voiceIndexDad = wrapIndex(voiceIndexDad + delta, voicePresetNames.length);
+				if (voiceTextDad != null)
+					voiceTextDad.text = voicePresetNames[voiceIndexDad];
+				setVoiceInSong('dad', voicePresetNames[voiceIndexDad]);
+
+			case 'girlfriend':
+				voiceIndexGF = wrapIndex(voiceIndexGF + delta, voicePresetNames.length);
+				if (voiceTextGF != null)
+					voiceTextGF.text = voicePresetNames[voiceIndexGF];
+				setVoiceInSong('girlfriend', voicePresetNames[voiceIndexGF]);
+		}
+	}
+
+	function wrapIndex(value:Int, max:Int):Int
+	{
+		if (max <= 0) return 0;
+		while (value < 0) value += max;
+		while (value >= max) value -= max;
+		return value;
+	}
+
+
+	function getChartSongRef():Dynamic
+	{
+		var possibleFields:Array<String> = ['_song', 'songData', 'song', 'songJson', 'curSongData'];
+
+		for (fieldName in possibleFields)
+		{
+			var ref:Dynamic = Reflect.field(this, fieldName);
+			if (ref != null)
+				return ref;
+		}
+
+		trace('[VoiceTab] Could not find chart song object on this editor state.');
+		return null;
+	}
+
+	function ensureVoicesObject(songRef:Dynamic):Dynamic
+	{
+		if (songRef == null) return null;
+
+		var voices:Dynamic = Reflect.field(songRef, 'voices');
+		if (voices == null)
+		{
+			voices = {
+				boyfriend: 'default',
+				dad: 'default',
+				girlfriend: 'default'
+			};
+			Reflect.setField(songRef, 'voices', voices);
+		}
+		return voices;
+	}
+
+	function getVoiceFromSong(songRef:Dynamic, character:String):String
+	{
+		if (songRef == null) return 'default';
+
+		var voices:Dynamic = Reflect.field(songRef, 'voices');
+		if (voices == null) return 'default';
+
+		var result:Dynamic = Reflect.field(voices, character);
+		if (result == null) return 'default';
+
+		return Std.string(result);
+	}
+
+	function setVoiceInSong(character:String, presetName:String):Void
+	{
+		var songRef:Dynamic = getChartSongRef();
+		if (songRef == null)
+		{
+			trace('[VoiceTab] Song ref is null, cannot save voice preset.');
+			return;
+		}
+
+		var voices:Dynamic = ensureVoicesObject(songRef);
+		if (voices == null) return;
+
+		Reflect.setField(voices, character, presetName);
+		trace('[VoiceTab] ' + character + ' -> ' + presetName);
+	}
 	var gridColors:Array<FlxColor>;
 	var gridColorsOther:Array<FlxColor>;
 	function changeTheme(changeTo:ChartingTheme, ?doSave:Bool = true)
@@ -654,6 +778,7 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		scrollSpeedStepper.value = PlayState.SONG.speed;
 		audioOffsetStepper.value = Reflect.hasField(PlayState.SONG, 'offset') ? PlayState.SONG.offset : 0;
 		Conductor.offset = audioOffsetStepper.value;
+		syncVoiceTabFromSong();
 
 		playerDropDown.selectedLabel = PlayState.SONG.player1;
 		opponentDropDown.selectedLabel = PlayState.SONG.player2;
@@ -1799,6 +1924,186 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		outputTxt.visible = (outputAlpha > 0);
 		FlxG.camera.scroll.y = scrollY;
 		lastFocus = PsychUIInputText.focusOn;
+	}
+	
+	function addVoiceTab()
+	{
+		var tab_group = mainBox.getTab('Voice').menu;
+		var objX = 10;
+		var objY = 25;
+
+		VoiceSystem.init();
+		voicePresetNames = VoiceSystem.getPresetNames();
+
+		if(voicePresetNames == null || voicePresetNames.length < 1)
+			voicePresetNames = ['default'];
+
+		syncVoiceTabFromSong();
+
+		var title = new FlxText(objX, objY - 10, 260, 'Character Voices', 16);
+		tab_group.add(title);
+
+		// BF
+		var bfLabel = new FlxText(objX, objY + 20, 150, 'Boyfriend Voice:', 14);
+		tab_group.add(bfLabel);
+
+		var bfPrevButton:PsychUIButton = new PsychUIButton(objX, objY + 40, '<', function()
+		{
+			bfVoiceIndex = wrapVoiceIndex(bfVoiceIndex - 1);
+			setChartVoice('boyfriend', voicePresetNames[bfVoiceIndex]);
+			refreshVoiceTexts();
+		}, 20);
+		tab_group.add(bfPrevButton);
+
+		bfVoiceText = new FlxText(objX + 30, objY + 44, 160, voicePresetNames[bfVoiceIndex], 12);
+		tab_group.add(bfVoiceText);
+
+		var bfNextButton:PsychUIButton = new PsychUIButton(objX + 200, objY + 40, '>', function()
+		{
+			bfVoiceIndex = wrapVoiceIndex(bfVoiceIndex + 1);
+			setChartVoice('boyfriend', voicePresetNames[bfVoiceIndex]);
+			refreshVoiceTexts();
+		}, 20);
+		tab_group.add(bfNextButton);
+
+		// DAD
+		var dadLabel = new FlxText(objX, objY + 80, 150, 'Opponent Voice:', 14);
+		tab_group.add(dadLabel);
+
+		var dadPrevButton:PsychUIButton = new PsychUIButton(objX, objY + 100, '<', function()
+		{
+			dadVoiceIndex = wrapVoiceIndex(dadVoiceIndex - 1);
+			setChartVoice('dad', voicePresetNames[dadVoiceIndex]);
+			refreshVoiceTexts();
+		}, 20);
+		tab_group.add(dadPrevButton);
+
+		dadVoiceText = new FlxText(objX + 30, objY + 104, 160, voicePresetNames[dadVoiceIndex], 12);
+		tab_group.add(dadVoiceText);
+
+		var dadNextButton:PsychUIButton = new PsychUIButton(objX + 200, objY + 100, '>', function()
+		{
+			dadVoiceIndex = wrapVoiceIndex(dadVoiceIndex + 1);
+			setChartVoice('dad', voicePresetNames[dadVoiceIndex]);
+			refreshVoiceTexts();
+		}, 20);
+		tab_group.add(dadNextButton);
+
+		// GF
+		var gfLabel = new FlxText(objX, objY + 140, 150, 'Girlfriend Voice:', 14);
+		tab_group.add(gfLabel);
+
+		var gfPrevButton:PsychUIButton = new PsychUIButton(objX, objY + 160, '<', function()
+		{
+			gfVoiceIndex = wrapVoiceIndex(gfVoiceIndex - 1);
+			setChartVoice('girlfriend', voicePresetNames[gfVoiceIndex]);
+			refreshVoiceTexts();
+		}, 20);
+		tab_group.add(gfPrevButton);
+
+		gfVoiceText = new FlxText(objX + 30, objY + 164, 160, voicePresetNames[gfVoiceIndex], 12);
+		tab_group.add(gfVoiceText);
+
+		var gfNextButton:PsychUIButton = new PsychUIButton(objX + 200, objY + 160, '>', function()
+		{
+			gfVoiceIndex = wrapVoiceIndex(gfVoiceIndex + 1);
+			setChartVoice('girlfriend', voicePresetNames[gfVoiceIndex]);
+			refreshVoiceTexts();
+		}, 20);
+		tab_group.add(gfNextButton);
+
+		var info = new FlxText(objX, objY + 205, 260,
+			'Presets: mods/characters/sounds/voices/\nSF2: mods/characters/sounds/sf2/', 10);
+		tab_group.add(info);
+
+		refreshVoiceTexts();
+	}
+
+	function wrapVoiceIndex(value:Int):Int
+	{
+		if(voicePresetNames == null || voicePresetNames.length < 1)
+			return 0;
+
+		while(value < 0)
+			value += voicePresetNames.length;
+		while(value >= voicePresetNames.length)
+			value -= voicePresetNames.length;
+
+		return value;
+	}
+
+	function findVoiceIndex(name:String):Int
+	{
+		if(name == null || voicePresetNames == null)
+			return 0;
+
+		for(i in 0...voicePresetNames.length)
+		{
+			if(voicePresetNames[i] == name)
+				return i;
+		}
+		return 0;
+	}
+
+	function ensureSongVoices()
+	{
+		if(PlayState.SONG == null)
+			return;
+
+		if(PlayState.SONG.voices == null)
+		{
+			PlayState.SONG.voices = {
+				boyfriend: 'default',
+				dad: 'default',
+				girlfriend: 'default'
+			};
+		}
+	}
+
+	function getChartVoice(character:String):String
+	{
+		if(PlayState.SONG == null || PlayState.SONG.voices == null)
+			return 'default';
+
+		var value:Dynamic = Reflect.field(PlayState.SONG.voices, character);
+		if(value == null)
+			return 'default';
+
+		return Std.string(value);
+	}
+
+	function setChartVoice(character:String, presetName:String)
+	{
+		if(PlayState.SONG == null)
+			return;
+
+		ensureSongVoices();
+		Reflect.setField(PlayState.SONG.voices, character, presetName);
+		trace('[VoiceTab] ' + character + ' -> ' + presetName);
+	}
+
+	function syncVoiceTabFromSong()
+	{
+		bfVoiceIndex = findVoiceIndex(getChartVoice('boyfriend'));
+		dadVoiceIndex = findVoiceIndex(getChartVoice('dad'));
+		gfVoiceIndex = findVoiceIndex(getChartVoice('girlfriend'));
+
+		refreshVoiceTexts();
+	}
+
+	function refreshVoiceTexts()
+	{
+		if(voicePresetNames == null || voicePresetNames.length < 1)
+			return;
+
+		if(bfVoiceText != null)
+			bfVoiceText.text = voicePresetNames[bfVoiceIndex];
+
+		if(dadVoiceText != null)
+			dadVoiceText.text = voicePresetNames[dadVoiceIndex];
+
+		if(gfVoiceText != null)
+			gfVoiceText.text = voicePresetNames[gfVoiceIndex];
 	}
 
 	function moveSelectedNotes(noteData:Int = 0, lastY:Float) //This turns selected notes into moving notes

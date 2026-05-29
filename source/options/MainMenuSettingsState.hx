@@ -46,7 +46,6 @@ class MainMenuSettingsState extends CategoryOptionsMenu
 
 		addCategory(catTopBar);
 
-		// ── Alt Bar ──────────────────────────────────────────────
 		var catBottomBar = new OptionCategory(
 			Language.getPhrase('menu_cat_bottom_bar',      'Alt Bar Ayarları'),
 			Language.getPhrase('menu_cat_bottom_bar_desc', 'Ekranın altındaki duyuru şeridini ve sürüm yazısını yönet.')
@@ -64,7 +63,6 @@ class MainMenuSettingsState extends CategoryOptionsMenu
 
 		addCategory(catBottomBar);
 
-		// ── Arka Plan Efektleri ───────────────────────────────────
 		var catBG = new OptionCategory(
 			Language.getPhrase('menu_cat_bg',      'Arka Plan Efektleri'),
 			Language.getPhrase('menu_cat_bg_desc', 'Parçacıklar, yüzen küreler ve grid arka planı gibi görsel efektler.')

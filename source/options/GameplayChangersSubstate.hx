@@ -22,7 +22,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		var goption:GameplayOption = new GameplayOption('Ok Türü', 'scrolltype', STRING, 'multiplicative', ["multiplicative", "constant"]);
 		optionsArray.push(goption);
 
-		var option:GameplayOption = new GameplayOption('Ok Hizi', 'scrollspeed', FLOAT, 1);
+		var option:GameplayOption = new GameplayOption('Ok Hızı', 'scrollspeed', FLOAT, 1);
 		option.scrollSpeed = 2.0;
 		option.minValue = 0.35;
 		option.changeValue = 0.05;
@@ -40,7 +40,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		optionsArray.push(option);
 
 		#if FLX_PITCH
-		var option:GameplayOption = new GameplayOption('Sarki Hizi', 'songspeed', FLOAT, 1);
+		var option:GameplayOption = new GameplayOption('Şarkı Hızı', 'songspeed', FLOAT, 1);
 		option.scrollSpeed = 1;
 		option.minValue = 0.5;
 		option.maxValue = 3.0;
@@ -50,7 +50,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		optionsArray.push(option);
 		#end
 
-		var option:GameplayOption = new GameplayOption('Health Gain Multiplier', 'healthgain', FLOAT, 1);
+		var option:GameplayOption = new GameplayOption('Sağlık Kazanım Çarpanı', 'healthgain', FLOAT, 1);
 		option.scrollSpeed = 2.5;
 		option.minValue = 0;
 		option.maxValue = 5;
@@ -58,7 +58,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		option.displayFormat = '%vX';
 		optionsArray.push(option);
 
-		var option:GameplayOption = new GameplayOption('Health Loss Multiplier', 'healthloss', FLOAT, 1);
+		var option:GameplayOption = new GameplayOption('Sağlık Kaybı Çarpanı', 'healthloss', FLOAT, 1);
 		option.scrollSpeed = 2.5;
 		option.minValue = 0.5;
 		option.maxValue = 5;
@@ -67,9 +67,9 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		optionsArray.push(option);
 
 		optionsArray.push(new GameplayOption('Iskada ani ölüm', 'instakill', BOOL, false));
-		optionsArray.push(new GameplayOption('Alistirma Modu', 'practice', BOOL, false));
-		optionsArray.push(new GameplayOption('Botplay', 'botplay', BOOL, false));
-		optionsArray.push(new GameplayOption('Karsi Taraf', 'opponent', BOOL, false));
+		optionsArray.push(new GameplayOption('Alıştırma Modu', 'practice', BOOL, false));
+		optionsArray.push(new GameplayOption('Bot Modu', 'botplay', BOOL, false));
+		optionsArray.push(new GameplayOption('Karşı Taraf', 'opponent', BOOL, false));
 	}
 
 	public function getOptionByName(name:String)

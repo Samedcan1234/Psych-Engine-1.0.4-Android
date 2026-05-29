@@ -27,7 +27,8 @@ class GameOverSubstate extends MusicBeatSubstate
 	public static var instance:GameOverSubstate;
 	public function new(?playStateBoyfriend:Character = null)
 	{
-		if(playStateBoyfriend != null && playStateBoyfriend.curCharacter == characterName) //Avoids spawning a second boyfriend cuz animate atlas is laggy
+		if(playStateBoyfriend != null && playStateBoyfriend.curCharacter == characterName) 
+
 		{
 			this.boyfriend = playStateBoyfriend;
 		}
@@ -85,7 +86,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		FlxG.camera.focusOn(new FlxPoint(FlxG.camera.scroll.x + (FlxG.camera.width / 2), FlxG.camera.scroll.y + (FlxG.camera.height / 2)));
 		FlxG.camera.follow(camFollow, LOCKON, 0.01);
 		add(camFollow);
-		
+
 		PlayState.instance.setOnScripts('inGameOver', true);
 		PlayState.instance.callOnScripts('onGameOverStart', []);
 		FlxG.sound.music.loadEmbedded(Paths.music(loopSoundName), true);
@@ -171,13 +172,13 @@ class GameOverSubstate extends MusicBeatSubstate
 				PlayState.deathCounter = 0;
 				PlayState.seenCutscene = false;
 				PlayState.chartingMode = false;
-	
+
 				Mods.loadTopMod();
 				if (PlayState.isStoryMode)
 					MusicBeatState.switchState(new StoryMenuState());
 				else
 					MusicBeatState.switchState(new FreeplayState());
-	
+
 				FlxG.sound.playMusic(Paths.music('freakyMenu'));
 				PlayState.instance.callOnScripts('onGameOverConfirm', [false]);
 			}
@@ -187,10 +188,9 @@ class GameOverSubstate extends MusicBeatSubstate
 				{
 					case 'tank':
 						coolStartDeath(0.2);
-						
+
 						var exclude:Array<Int> = [];
-						//if(!ClientPrefs.cursing) exclude = [1, 3, 8, 13, 17, 21];
-	
+
 						FlxG.sound.play(Paths.sound('jeffGameover/jeffGameover-' + FlxG.random.int(1, 25, exclude)), 1, false, null, true, function() {
 							if(!isEnding)
 							{
@@ -202,7 +202,7 @@ class GameOverSubstate extends MusicBeatSubstate
 						coolStartDeath();
 				}
 			}
-			
+
 			if (FlxG.sound.music.playing)
 			{
 				Conductor.songPosition = FlxG.sound.music.time;
@@ -253,3 +253,4 @@ class GameOverSubstate extends MusicBeatSubstate
 		super.destroy();
 	}
 }
+

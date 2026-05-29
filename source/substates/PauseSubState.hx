@@ -34,14 +34,12 @@ class PauseSubState extends MusicBeatSubstate
 	var missingTextBG:FlxSprite;
 	var missingText:FlxText;
 
-	// Background
 	var blurOverlay:FlxSprite;
 	var gridBG:FlxBackdrop;
 	var gradientTop:FlxSprite;
 	var gradientBot:FlxSprite;
 	var particles:Array<FlxSprite> = [];
 
-	// Top panel
 	var topPanel:FlxSprite;
 	var topPanelLine:FlxSprite;
 	var songNameText:FlxText;
@@ -50,14 +48,12 @@ class PauseSubState extends MusicBeatSubstate
 	var practiceTag:FlxText;
 	var chartingTag:FlxText;
 
-	// Left menu panel
 	var menuPanel:FlxSprite;
 	var menuPanelGlow:FlxSprite;
 	var menuPanelLine:FlxSprite;
 	var selectionBar:FlxSprite;
 	var selectionGlow:FlxSprite;
 
-	// Right info panel
 	var infoPanel:FlxSprite;
 	var infoPanelLine:FlxSprite;
 	var progressBar:FlxBar;
@@ -67,7 +63,6 @@ class PauseSubState extends MusicBeatSubstate
 	var missBadge:FlxText;
 	var infoBeatLine:FlxSprite;
 
-	// Bottom bar
 	var bottomBar:FlxSprite;
 	var botLine:FlxSprite;
 	var ambientPulse:Float = 0;
@@ -107,7 +102,6 @@ class PauseSubState extends MusicBeatSubstate
 
 	public static var songName:String = null;
 
-	// ─── Layout ────────────────────────────────────────────────────
 	static inline var MENU_X:Float = 40.0;
 	static inline var MENU_W:Float = 370.0;
 	static inline var INFO_X:Float = 440.0;
@@ -115,12 +109,9 @@ class PauseSubState extends MusicBeatSubstate
 	static inline var BOT_H:Float  = 36.0;
 	static inline var ITEM_H:Float = 72.0;
 
-	// ═══════════════════════════════════════════════════════════════
-	// CREATE
-	// ═══════════════════════════════════════════════════════════════
 	override function create()
 	{
-		// Prepare menu items
+
 		if (Difficulty.list.length < 2)
 			menuItemsOG.remove('Change Difficulty');
 
@@ -142,7 +133,6 @@ class PauseSubState extends MusicBeatSubstate
 			difficultyChoices.push(Difficulty.getString(i));
 		difficultyChoices.push('BACK');
 
-		// Music
 		pauseMusic = new FlxSound();
 		try
 		{
@@ -169,16 +159,12 @@ class PauseSubState extends MusicBeatSubstate
 		regenMenu();
 		playOpenAnimation();
 
-		// ── Mobile controls ──────────────────────────────────────
 		addTouchPad(menuItems.contains('Skip Time') ? 'LEFT_FULL' : 'UP_DOWN', 'A');
 		addTouchPadCamera();
 
 		super.create();
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// BACKGROUND
-	// ═══════════════════════════════════════════════════════════════
 	function buildBackground()
 	{
 		blurOverlay = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -221,9 +207,6 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// TOP PANEL
-	// ═══════════════════════════════════════════════════════════════
 	function buildTopPanel()
 	{
 		topPanel = new FlxSprite(0, -TOP_H).makeGraphic(FlxG.width, Std.int(TOP_H), 0xF0040408);
@@ -281,9 +264,6 @@ class PauseSubState extends MusicBeatSubstate
 		chartingTag.x = FlxG.width - chartingTag.width - 20;
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// LEFT MENU PANEL
-	// ═══════════════════════════════════════════════════════════════
 	function buildMenuPanel()
 	{
 		var panelH = FlxG.height - TOP_H - BOT_H;
@@ -320,9 +300,6 @@ class PauseSubState extends MusicBeatSubstate
 		add(selectionBar);
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// RIGHT INFO PANEL
-	// ═══════════════════════════════════════════════════════════════
 	function buildInfoPanel()
 	{
 		var iPanW = FlxG.width - INFO_X - 20;
@@ -345,7 +322,6 @@ class PauseSubState extends MusicBeatSubstate
 		infoBeatLine.scrollFactor.set();
 		add(infoBeatLine);
 
-		// ── Progress bar ──────────────────────────────────────────
 		var progY = TOP_H + 22;
 
 		var progLabel = new FlxText(INFO_X + 15, progY, 300,
@@ -369,7 +345,6 @@ class PauseSubState extends MusicBeatSubstate
 		progressTimeText.scrollFactor.set();
 		add(progressTimeText);
 
-		// ── Live stats ────────────────────────────────────────────
 		var sY = TOP_H + 88;
 
 		var scoreLabel = new FlxText(INFO_X + 15, sY, 200,
@@ -443,9 +418,6 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// BOTTOM BAR
-	// ═══════════════════════════════════════════════════════════════
 	function buildBottomBar()
 	{
 		bottomBar = new FlxSprite(0, FlxG.height - BOT_H)
@@ -466,9 +438,6 @@ class PauseSubState extends MusicBeatSubstate
 		add(hint);
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// ERROR UI
-	// ═══════════════════════════════════════════════════════════════
 	function buildErrorUI()
 	{
 		missingTextBG = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -485,9 +454,6 @@ class PauseSubState extends MusicBeatSubstate
 		add(missingText);
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// OPEN ANIMATION
-	// ═══════════════════════════════════════════════════════════════
 	function playOpenAnimation()
 	{
 		FlxTween.tween(blurOverlay, {alpha: 0.72}, 0.35, {ease: FlxEase.quartInOut});
@@ -531,9 +497,6 @@ class PauseSubState extends MusicBeatSubstate
 		FlxTween.tween(botLine,   {y: FlxG.height - BOT_H}, 0.42, {ease: FlxEase.backOut, startDelay: 0.08});
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// CLOSE ANIMATION
-	// ═══════════════════════════════════════════════════════════════
 	function playCloseAnimation(onDone:Void->Void)
 	{
 		if (isClosing) return;
@@ -563,9 +526,6 @@ class PauseSubState extends MusicBeatSubstate
 		});
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// MENU ITEMS
-	// ═══════════════════════════════════════════════════════════════
 	function regenMenu():Void
 	{
 		for (i in 0...grpMenuShit.members.length)
@@ -633,7 +593,6 @@ class PauseSubState extends MusicBeatSubstate
 		curSelected = 0;
 		changeSelection();
 
-		// ── Refresh touch pad when menu changes ───────────────────
 		if (touchPad != null)
 		{
 			removeTouchPad();
@@ -642,9 +601,6 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// UPDATE
-	// ═══════════════════════════════════════════════════════════════
 	override function update(elapsed:Float)
 	{
 		if (isClosing) { super.update(elapsed); return; }
@@ -658,7 +614,6 @@ class PauseSubState extends MusicBeatSubstate
 
 		super.update(elapsed);
 
-		// ── Mobile touch pad null-check ───────────────────────────
 		if (touchPad == null)
 		{
 			addTouchPad(menuItems.contains('Skip Time') ? 'LEFT_FULL' : 'UP_DOWN', 'A');
@@ -734,9 +689,6 @@ class PauseSubState extends MusicBeatSubstate
 			handleAccept(daSelected);
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// BEAT HIT
-	// ═══════════════════════════════════════════════════════════════
 	override function beatHit()
 	{
 		super.beatHit();
@@ -772,9 +724,6 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// ACCEPT
-	// ═══════════════════════════════════════════════════════════════
 	function handleAccept(daSelected:String)
 	{
 		if (menuItems == difficultyChoices)
@@ -892,9 +841,6 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
-	// ═══════════════════════════════════════════════════════════════
-	// SKIP TIME
-	// ═══════════════════════════════════════════════════════════════
 	function handleSkipTime(elapsed:Float, daSelected:String)
 	{
 		if (daSelected != 'Skip Time') return;
@@ -971,3 +917,4 @@ class PauseSubState extends MusicBeatSubstate
 		super.destroy();
 	}
 }
+

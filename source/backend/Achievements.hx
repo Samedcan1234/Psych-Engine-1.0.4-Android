@@ -17,7 +17,6 @@ typedef Achievement =
 	@:optional var maxScore:Float;
 	@:optional var maxDecimals:Int;
 
-	//handled automatically, ignore these two
 	@:optional var mod:String;
 	@:optional var ID:Int; 
 }
@@ -59,7 +58,6 @@ class Achievements {
 		createAchievement('pessy_easter_egg',		{name: "Engine Gal Pal", description: "Teehee, you found me~!", hidden: true});
 		#end
 
-		//dont delete this thing below
 		_originalLength = _sortID + 1;
 	}
 
@@ -100,7 +98,7 @@ class Achievements {
 		FlxG.save.data.achievementsUnlocked = achievementsUnlocked;
 		FlxG.save.data.achievementsVariables = variables;
 	}
-	
+
 	public static function getScore(name:String):Float
 		return _scoreFunc(name, GET);
 
@@ -125,8 +123,10 @@ class Achievements {
 			var val = addOrSet;
 			switch(mode)
 			{
-				case GET: return variables.get(name); //get
-				case ADD: val += variables.get(name); //add
+				case GET: return variables.get(name); 
+
+				case ADD: val += variables.get(name); 
+
 				default:
 			}
 
@@ -158,9 +158,9 @@ class Achievements {
 		trace('Completed achievement "$name"');
 		achievementsUnlocked.push(name);
 
-		// earrape prevention
 		var time:Int = openfl.Lib.getTimer();
-		if(Math.abs(time - _lastUnlock) >= 100) //If last unlocked happened in less than 100 ms (0.1s) ago, then don't play sound
+		if(Math.abs(time - _lastUnlock) >= 100) 
+
 		{
 			FlxG.sound.play(Paths.sound('confirmMenu'), 0.5);
 			_lastUnlock = time;
@@ -192,10 +192,9 @@ class Achievements {
 
 		var newPop:AchievementPopup = new AchievementPopup(achieve, endFunc);
 		_popups.push(newPop);
-		//trace('Giving achievement ' + achieve);
+
 	}
 
-	// Map sorting cuz haxe is physically incapable of doing that by itself
 	static var _sortID = 0;
 	static var _originalLength = -1;
 	public static function createAchievement(name:String, data:Achievement, ?mod:String = null)
@@ -209,7 +208,7 @@ class Achievements {
 	#if MODS_ALLOWED
 	public static function reloadList()
 	{
-		// remove modded achievements
+
 		if((_sortID + 1) > _originalLength)
 			for (key => value in achievements)
 				if(value.mod != null)
@@ -234,8 +233,8 @@ class Achievements {
 		if(FileSystem.exists(path)) {
 			try {
 				var rawJson:String = File.getContent(path).trim();
-				if(rawJson != null && rawJson.length > 0) retVal = tjson.TJSON.parse(rawJson); //Json.parse('{"achievements": $rawJson}').achievements;
-				
+				if(rawJson != null && rawJson.length > 0) retVal = tjson.TJSON.parse(rawJson); 
+
 				if(addMods && retVal != null)
 				{
 					for (i in 0...retVal.length)

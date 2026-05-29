@@ -1,5 +1,7 @@
 package backend;
 
+import objects.ProfileBox; // ProfileBox import
+
 class AuthManager {
     public static var currentUsername:String = "Player";
     public static var currentUserId:String = "";
@@ -8,126 +10,123 @@ class AuthManager {
     public static var currentAvatar:Int = 0;
     public static var currentCountry:String = "";
     public static var isLoggedIn:Bool = false;
-	public static var currentUltraPoints:Float = 0.0;
-	public static var currentRole:String = "player";
-	public static var currentBadge:String = null;
+    public static var currentUltraPoints:Float = 0.0;
+    public static var currentRole:String = "player";
+    public static var currentBadge:String = null;
 
-	public static function register(
-		email:String, password:String,
-		username:String, country:String,
-		callback:Bool->String->Void
-	):Void {
-	
-		if (BadWordFilter.contains(username)) {
-			callback(false, "Username contains inappropriate words.");
-			return;
-		}
-		if (username.length < 4) {
-			callback(false, "Username must be at least 4 characters.");
-			return;
-		}
+    public static function register(
+        email:String, password:String,
+        username:String, country:String,
+        callback:Bool->String->Void
+    ):Void {
+    
+        if (BadWordFilter.contains(username)) {
+            callback(false, "Username contains inappropriate words.");
+            return;
+        }
+        if (username.length < 4) {
+            callback(false, "Username must be at least 4 characters.");
+            return;
+        }
 
-		var body = {
-			email: email,
-			password: password,
-			data: { username: username, country: country }
-		};
+        var body = {
+            email: email,
+            password: password,
+            data: { username: username, country: country }
+        };
 
-		trace("SENDING BODY: " + haxe.Json.stringify(body));
+        trace("SENDING BODY: " + haxe.Json.stringify(body));
 
-		SupabaseClient.postAsync("/auth/v1/signup", body, "", function(status, data) {
-			trace("REGISTER RESPONSE: " + data);
+        SupabaseClient.postAsync("/auth/v1/signup", body, "", function(status, data) {
+            trace("REGISTER RESPONSE: " + data);
 
-			if (status == 200 || status == 201) {
-				try {
-					var parsed = haxe.Json.parse(data);
+            if (status == 200 || status == 201) {
+                try {
+                    var parsed = haxe.Json.parse(data);
 
-					if (parsed.access_token != null) {
-						SupabaseClient.saveToken(parsed.access_token, parsed.user.id);
-						loadProfile(parsed.access_token, callback);
-					}
-					else if (parsed.id != null) {
-						callback(true, "Account created! Please check your email to verify.");
-					}
-					else {
-						callback(false, "Unexpected response.");
-					}
-				} catch(e) {
-					callback(false, "Parse error: " + e);
-				}
-			} else {
-				try {
-					var err = haxe.Json.parse(data);
-					callback(false, err.msg ?? err.error_description ?? err.error ?? "Registration failed.");
-				} catch(_) {
-					callback(false, data);
-				}
-			}
-		});
-	}
-	
-	public static function loginWithUsername(
-		username:String, password:String,
-		callback:Bool->String->Void
-	):Void {
-		SupabaseClient.getAsync(
-			'/rest/v1/profiles?select=email&username=eq.' + StringTools.urlEncode(username),
-			"", function(_, data) {
-				try {
-					var arr:Array<Dynamic> = haxe.Json.parse(data);
-					if (arr.length == 0 || arr[0].email == null) {
-						callback(false, "Kullanıcı bulunamadı.");
-						return;
-					}
-					var email:String = arr[0].email;
-					login(email, password, callback);
-				} catch(e) {
-					callback(false, "Bağlantı hatası.");
-				}
-			}
-		);
-	}
+                    if (parsed.access_token != null) {
+                        SupabaseClient.saveToken(parsed.access_token, parsed.user.id);
+                        loadProfile(parsed.access_token, callback);
+                    }
+                    else if (parsed.id != null) {
+                        callback(true, "Account created! Please check your email to verify.");
+                    }
+                    else {
+                        callback(false, "Unexpected response.");
+                    }
+                } catch(e) {
+                    callback(false, "Parse error: " + e);
+                }
+            } else {
+                try {
+                    var err = haxe.Json.parse(data);
+                    callback(false, err.msg ?? err.error_description ?? err.error ?? "Registration failed.");
+                } catch(_) {
+                    callback(false, data);
+                }
+            }
+        });
+    }
+    
+    public static function loginWithUsername(
+        username:String, password:String,
+        callback:Bool->String->Void
+    ):Void {
+        SupabaseClient.getAsync(
+            '/rest/v1/profiles?select=email&username=eq.' + StringTools.urlEncode(username),
+            "", function(_, data) {
+                try {
+                    var arr:Array<Dynamic> = haxe.Json.parse(data);
+                    if (arr.length == 0 || arr[0].email == null) {
+                        callback(false, "Kullanıcı bulunamadı.");
+                        return;
+                    }
+                    var email:String = arr[0].email;
+                    login(email, password, callback);
+                } catch(e) {
+                    callback(false, "Bağlantı hatası.");
+                }
+            }
+        );
+    }
 
-	public static function login(
-		email:String, password:String,
-		callback:Bool->String->Void
-	):Void {
-		var body = {
-			email: email,
-			password: password,
-			grant_type: "password"
-		};
-		
-		trace("LOGIN BODY: " + haxe.Json.stringify(body));
-		
-		SupabaseClient.postAsync("/auth/v1/token?grant_type=password", body, "", function(status, data) {
-			trace("LOGIN RESPONSE: " + data);
-			if (data.indexOf('"access_token"') != -1) {
-				var parsed = haxe.Json.parse(data);
-				SupabaseClient.saveToken(parsed.access_token, parsed.user.id);
-				loadProfile(parsed.access_token, callback);
-			} else {
-				try {
-					var err = haxe.Json.parse(data);
-					callback(false, err.error_description ?? err.msg ?? err.error ?? "Invalid email or password.");
-				} catch(_) {
-					callback(false, "Invalid email or password.");
-				}
-			}
-		});
-	}
+    public static function login(
+        email:String, password:String,
+        callback:Bool->String->Void
+    ):Void {
+        var body = {
+            email: email,
+            password: password,
+            grant_type: "password"
+        };
+        
+        trace("LOGIN BODY: " + haxe.Json.stringify(body));
+        
+        SupabaseClient.postAsync("/auth/v1/token?grant_type=password", body, "", function(status, data) {
+            trace("LOGIN RESPONSE: " + data);
+            if (data.indexOf('"access_token"') != -1) {
+                var parsed = haxe.Json.parse(data);
+                SupabaseClient.saveToken(parsed.access_token, parsed.user.id);
+                loadProfile(parsed.access_token, callback);
+            } else {
+                try {
+                    var err = haxe.Json.parse(data);
+                    callback(false, err.error_description ?? err.msg ?? err.error ?? "Invalid email or password.");
+                } catch(_) {
+                    callback(false, "Invalid email or password.");
+                }
+            }
+        });
+    }
 
-    // Token ile otomatik giriş
+    // Token ile otomatik giriş - FIXED
     public static function autoLogin(callback:Bool->Void):Void {
         if (!SupabaseClient.hasToken()) { callback(false); return; }
-        var token = SupabaseClient.getToken(); // FIX 1: token değişkeni tanımlandı
-        SupabaseClient.getAsync("/auth/v1/user", token, function(status, data) { // FIX 2: geçerli endpoint
-            if (status == 200) {
-                loadProfile(token, function(ok, _) callback(ok)); // FIX 3: kapanış parantezleri düzeltildi
-            } else {
-                callback(false);
-            }
-        }); // FIX 3: eksik }); eklendi
+        var token = SupabaseClient.getToken();
+        // FIXED: callback signature - SupabaseClient.getAsync expects (Int, String) -> Void
+        SupabaseClient.getAsync("/auth/v1/user", token, function(_, data:String) {
+            loadProfile(token, function(ok, _) callback(ok));
+        });
     }
 
     // Şifremi unuttum
@@ -139,7 +138,7 @@ class AuthManager {
 
     // Hesap sil
     public static function deleteAccount(callback:Bool->String->Void):Void {
-        var token = SupabaseClient.getToken(); // FIX 4: getAsync() -> getToken()
+        var token = SupabaseClient.getToken();
         var userId = SupabaseClient.getUserId();
         var http = new haxe.Http('${SupabaseClient.URL}/rest/v1/profiles?id=eq.${userId}');
         http.setHeader("apikey", SupabaseClient.ANON_KEY);
@@ -161,7 +160,7 @@ class AuthManager {
         isLoggedIn = false;
     }
 
-    // Profil yükle
+    // Profil yükle - FIXED: ProfileBox kullanımı
     static function loadProfile(token:String, callback:Bool->String->Void):Void {
         SupabaseClient.getAsync("/rest/v1/profiles?select=*&id=eq." + SupabaseClient.getUserId(), token, function(_, data) {
             try {
@@ -175,14 +174,37 @@ class AuthManager {
                     currentCountry  = p.country;
                     currentUserId   = p.id;
                     isLoggedIn = true;
+                    
+                    // Cache'e kaydet - FIXED: ProfileBox kullan
+                    ProfileBox.syncFromAuth();
+                    
                     callback(true, "OK");
                 } else {
-                    callback(false, "Profile not found.");
+                    // Offline cache'i kontrol et
+                    _tryOfflineLogin(callback);
                 }
             } catch(e) {
                 callback(false, "Parse error.");
             }
         });
+    }
+
+    // Offline login denemesi - FIXED: ProfileBox kullanımı
+    private static function _tryOfflineLogin(callback:Bool->String->Void):Void {
+        var cached = ProfileBox.getCachedProfile();
+        if (cached != null) {
+            currentUsername = cached.username ?? "Player";
+            currentLevel = cached.level ?? 1;
+            currentScore = cached.score ?? 0;
+            currentAvatar = cached.avatar ?? 0;
+            currentCountry = "";
+            isLoggedIn = true;
+            callback(true, "Offline login");
+        } else {
+            currentUsername = "Player";
+            isLoggedIn = false;
+            callback(false, "Login required");
+        }
     }
 
     static function tryParseError(data:String):String {

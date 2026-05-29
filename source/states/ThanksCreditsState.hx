@@ -18,54 +18,50 @@ class ThanksCreditsState extends MusicBeatState
 {
 	var creditsData:Array<Array<String>> = [];
 	var creditItems:FlxTypedGroup<CreditItem>;
-	var scrollSpeed:Float = 50; // Kaydırma hızı (piksel/saniye)
-	
+	var scrollSpeed:Float = 50; 
+
 	var blackBG:FlxSprite;
-	var endImage:FlxSprite; // Sonda gösterilecek resim
+	var endImage:FlxSprite; 
+
 	var endImageShown:Bool = false;
-	
+
 	var skipText:FlxText;
 	var canSkip:Bool = true;
 
 	override function create()
 	{
 		super.create();
-		
+
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Credits Akışını İzliyor", null);
 		#end
 
-		// Siyah Arka Plan
 		blackBG = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
 		add(blackBG);
 
 		creditItems = new FlxTypedGroup<CreditItem>();
 		add(creditItems);
 
-		// Credits verilerini yükle
 		loadCreditsData();
-		
-		// Credits öğelerini oluştur
+
 		createCreditItems();
 
-		// Skip Metni
 		skipText = new FlxText(0, FlxG.height - 40, FlxG.width, "ESC ile çık | ENTER ile hızlandır", 20);
 		skipText.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		skipText.scrollFactor.set();
 		skipText.alpha = 0.7;
 		add(skipText);
 
-		// YENİ: Son resmi SADECE RESİM OLARAK hazırla
 		endImage = new FlxSprite();
-		var endImagePath = 'pet/peulogo'; // assets/images/credits/thanks.png
-		
+		var endImagePath = 'pet/peulogo'; 
+
 		if(Paths.fileExists('images/$endImagePath.png', IMAGE))
 		{
 			endImage.loadGraphic(Paths.image(endImagePath));
 		}
 		else
 		{
-			// Eğer resim yoksa varsayılan placeholder oluştur
+
 			trace("WARNING: credits/thanks.png bulunamadı! Lütfen ekleyin.");
 			endImage.makeGraphic(1000, 600, 0xFF1a1a1a);
 
@@ -76,25 +72,23 @@ class ThanksCreditsState extends MusicBeatState
 			warningText.scrollFactor.set();
 			warningText.alpha = 0;
 			add(warningText);
-			
-			// Uyarı metnini de fade in yap
+
 			FlxTween.tween(warningText, {alpha: 1}, 1.5, {ease: FlxEase.quartInOut, startDelay: 1});
 		}
-		
-		// Aspect ratio koruyarak boyutlandır
+
 		var maxWidth = FlxG.width * 0.85;
 		var maxHeight = FlxG.height * 0.7;
-		
+
 		if(endImage.width > maxWidth || endImage.height > maxHeight)
 		{
 			var scaleX = maxWidth / endImage.width;
 			var scaleY = maxHeight / endImage.height;
 			var finalScale = Math.min(scaleX, scaleY);
-			
+
 			endImage.scale.set(finalScale, finalScale);
 			endImage.updateHitbox();
 		}
-		
+
 		endImage.screenCenter();
 		endImage.alpha = 0;
 		endImage.scrollFactor.set();
@@ -106,7 +100,7 @@ class ThanksCreditsState extends MusicBeatState
 
 	function loadCreditsData()
 	{
-		// CreditsState'deki aynı veriyi kullan
+
 		#if MODS_ALLOWED
 		for (mod in Mods.parseList().enabled)
 		{
@@ -132,7 +126,7 @@ class ThanksCreditsState extends MusicBeatState
 
 		if(creditsData.length == 0)
 		{
-			// Varsayılan credits
+
 			pushDefaultCreditsData();
 		}
 	}
@@ -169,14 +163,14 @@ class ThanksCreditsState extends MusicBeatState
 
 	function createCreditItems()
 	{
-		var startY:Float = FlxG.height + 150; // Ekranın daha altından başla
-		var spacing:Float = 400; // YENİ: Çok daha geniş boşluk (280'den 400'e)
+		var startY:Float = FlxG.height + 150; 
+
+		var spacing:Float = 400; 
 
 		for(i in 0...creditsData.length)
 		{
 			var data = creditsData[i];
-			
-			// Header kontrolü
+
 			if(data.length <= 1) continue;
 
 			var item = new CreditItem(data[0], data[1], data[2]);
@@ -191,8 +185,7 @@ class ThanksCreditsState extends MusicBeatState
 		super.update(elapsed);
 
 		var speed = scrollSpeed;
-		
-		// ENTER basılı tutulursa hızlan
+
 		if(FlxG.keys.pressed.ENTER)
 		{
 			speed *= 3;
@@ -203,17 +196,14 @@ class ThanksCreditsState extends MusicBeatState
 			skipText.text = "ESC ile çık | ENTER ile hızlandır";
 		}
 
-		// Credits'leri yukarı kaydır
 		if(!endImageShown)
 		{
 			creditItems.forEach(function(item:CreditItem) {
 				item.y -= speed * elapsed;
-				
-				// YENİ: Ekran merkezine yakınlığa göre renk fade efekti
+
 				updateCreditItemColor(item);
 			});
 
-			// En son öğe ekranın üstünden çıktıysa end image göster
 			if(creditItems.length > 0)
 			{
 				var lastItem = creditItems.members[creditItems.members.length - 1];
@@ -224,46 +214,40 @@ class ThanksCreditsState extends MusicBeatState
 			}
 		}
 
-		// ESC ile çık
 		if(FlxG.keys.justPressed.ESCAPE && canSkip)
 		{
 			exitCredits();
 		}
 	}
 
-	// YENİ: Credits öğelerinin rengini ekran pozisyonuna göre ayarla
 	function updateCreditItemColor(item:CreditItem)
 	{
 		var centerY = FlxG.height / 2;
 		var itemCenterY = item.y + (item.height / 2);
-		
-		// Ekran merkezinden uzaklık
+
 		var distance = Math.abs(itemCenterY - centerY);
-		var maxDistance = FlxG.height * 0.6; // Fade mesafesi
-		
-		// Alpha hesaplama (merkeze yaklaştıkça 1, uzaklaştıkça 0)
+		var maxDistance = FlxG.height * 0.6; 
+
 		var alpha = 1 - (distance / maxDistance);
 		if(alpha < 0) alpha = 0;
 		if(alpha > 1) alpha = 1;
-		
-		// Yumuşak geçiş için ease
+
 		alpha = FlxEase.quadInOut(alpha);
-		
-		// Tüm öğelere alpha uygula
+
 		item.alpha = alpha;
 	}
 
 	function showEndImage()
 	{
 		if(endImageShown) return;
-		
+
 		endImageShown = true;
-		
-		// Fade in efekti
-		FlxTween.tween(endImage, {alpha: 1}, 2.0, { // 1.5'ten 2.0'a (daha yavaş)
+
+		FlxTween.tween(endImage, {alpha: 1}, 2.0, { 
+
 			ease: FlxEase.quartInOut,
 			onComplete: function(twn:FlxTween) {
-				// 5 saniye bekle, sonra ana menüye dön
+
 				new FlxTimer().start(5, function(tmr:FlxTimer) {
 					exitCredits();
 				});
@@ -280,7 +264,6 @@ class ThanksCreditsState extends MusicBeatState
 	}
 }
 
-// Credits öğesi sınıfı (İYİLEŞTİRİLMİŞ)
 class CreditItem extends FlxSpriteGroup
 {
 	var icon:FlxSprite;
@@ -291,19 +274,17 @@ class CreditItem extends FlxSpriteGroup
 	{
 		super();
 
-		// İkon
 		icon = new FlxSprite();
 		var iconPath = 'credits/' + iconName;
 		if(!Paths.fileExists('images/$iconPath.png', IMAGE)) 
 			iconPath = 'credits/missing_icon';
-		
+
 		icon.loadGraphic(Paths.image(iconPath));
-		
-		// Aspect ratio koruyarak boyutlandırma
-		var targetSize = 200; // 180'den 200'e (biraz daha büyük)
+
+		var targetSize = 200; 
+
 		var scale:Float = 1.0;
-		
-		// En büyük kenarı bul
+
 		if(icon.width > icon.height)
 		{
 			scale = targetSize / icon.width;
@@ -312,25 +293,24 @@ class CreditItem extends FlxSpriteGroup
 		{
 			scale = targetSize / icon.height;
 		}
-		
+
 		icon.scale.set(scale, scale);
 		icon.updateHitbox();
 		icon.antialiasing = ClientPrefs.data.antialiasing;
 		add(icon);
 
-		// İsim
-		nameText = new FlxText(0, icon.y + icon.height + 30, FlxG.width, name, 56); // Font 52'den 56'ya
+		nameText = new FlxText(0, icon.y + icon.height + 30, FlxG.width, name, 56); 
+
 		nameText.setFormat(Paths.font("vcr.ttf"), 56, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		nameText.borderSize = 4;
 		add(nameText);
 
-		// Rol
-		roleText = new FlxText(0, nameText.y + 70, FlxG.width, role, 36); // Font 34'ten 36'ya
+		roleText = new FlxText(0, nameText.y + 70, FlxG.width, role, 36); 
+
 		roleText.setFormat(Paths.font("vcr.ttf"), 36, 0xFFCCCCCC, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		roleText.borderSize = 2.8;
 		add(roleText);
 
-		// İkonu merkeze al
 		icon.x = (FlxG.width / 2) - (icon.width / 2);
 	}
 }

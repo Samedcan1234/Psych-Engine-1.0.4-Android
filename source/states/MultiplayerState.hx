@@ -4,7 +4,7 @@ import backend.AuthManager;
 import backend.SupabaseClient;
 import flixel.FlxG;
 import flixel.FlxSprite;
-// import flixel.group.FlxTypedSpriteGroup;
+
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.tweens.FlxTween;
@@ -13,14 +13,8 @@ import objects.ProfileBox;
 import objects.AlertMgr;
 import states.TitleState;
 
-/**
- * MultiplayerState
- * Online özellikler kaldırıldı.
- * Sadece LeaderBoard ve Local oynama seçenekleri.
- */
 class MultiplayerState extends MusicBeatState {
 
-    // ── Menü öğeleri ──
     static final ITEMS:Array<String> = [
         "Liderlik Tablosu",
         "Yerel Oynama",
@@ -40,7 +34,6 @@ class MultiplayerState extends MusicBeatState {
     static var curSelected:Int = 0;
     var disableInput:Bool = false;
 
-    // ── Leaderboard substate ──
     var lbSubstate:LeaderboardSubstate;
 
     override function create() {
@@ -80,12 +73,12 @@ class MultiplayerState extends MusicBeatState {
         selectLine.makeGraphic(1, 1, FlxColor.fromRGB(192, 132, 252));
         selectLine.alpha = 0.15;
         add(selectLine);
-		
+
         descBox = new FlxSprite(0, FlxG.height - 110);
         descBox.makeGraphic(1, 1, FlxColor.BLACK);
         descBox.alpha = 0.45;
         add(descBox);
-		
+
         items = new FlxTypedSpriteGroup<FlxText>();
         for (i in 0...ITEMS.length) {
             var text = new FlxText(0, 0, 0, ITEMS[i]);
@@ -102,14 +95,12 @@ class MultiplayerState extends MusicBeatState {
         items.screenCenter(Y);
         add(items);
 
-        // ── Açıklama yazısı ──
         itemDesc = new FlxText(0, FlxG.height - 95, 0, "");
         itemDesc.setFormat("VCR OSD Mono", 22, FlxColor.WHITE, CENTER,
             FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
         itemDesc.screenCenter(X);
         add(itemDesc);
 
-        // ── Profil kutucuğu (sağ üst) ──
         profileBox = new ProfileBox();
         profileBox.setPosition(FlxG.width - profileBox.width - 20, 20);
         add(profileBox);
@@ -139,7 +130,7 @@ class MultiplayerState extends MusicBeatState {
         super.update(elapsed);
 
         if (disableInput) return;
-		
+
         for (item in items) {
             final isSel = item.ID == curSelected;
             item.text = isSel ? "> " + ITEMS[item.ID] + " <" : ITEMS[item.ID];
@@ -147,7 +138,6 @@ class MultiplayerState extends MusicBeatState {
             item.screenCenter(X);
         }
 
-        // ── Mouse hover ──
         if (FlxG.mouse.justMoved) {
             for (item in items) {
                 if (FlxG.mouse.overlaps(item)) {
@@ -157,7 +147,6 @@ class MultiplayerState extends MusicBeatState {
             }
         }
 
-        // ── Klavye / kontrol ──
         if (controls.UI_UP_P)   changeSelection(-1);
         if (controls.UI_DOWN_P) changeSelection(1);
 
@@ -182,13 +171,15 @@ class MultiplayerState extends MusicBeatState {
     function selectItem() {
         FlxG.sound.play(Paths.sound('confirmMenu'));
         switch (curSelected) {
-            case 0: // Liderlik Tablosu
+            case 0: 
+
                 disableInput = true;
                 openSubState(new LeaderboardSubstate(function() {
                     disableInput = false;
                 }));
 
-            case 1: // Yerel Oynama
+            case 1: 
+
 			AlertMsg.show(
 				Language.getPhrase('language_changed_title', 'Daha gelmedi!'),
 				Language.getPhrase('language_changed_msg', 'yok.'),
@@ -202,7 +193,6 @@ class MultiplayerState extends MusicBeatState {
         FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
         curSelected = (curSelected + diff + ITEMS.length) % ITEMS.length;
 
-        // Açıklama güncelle
         itemDesc.text = DESCS[curSelected];
         itemDesc.screenCenter(X);
 
@@ -223,3 +213,4 @@ class MultiplayerState extends MusicBeatState {
         super.destroy();
     }
 }
+

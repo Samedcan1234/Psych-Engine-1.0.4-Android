@@ -6,32 +6,26 @@ class LanguageSubState extends MusicBeatSubstate
 {
     #if TRANSLATIONS_ALLOWED
 
-    // ── Veri ────────────────────────────────────────────────────
     var langKeys:Array<String> = [];
     var curSelected:Int        = 0;
     var changedLanguage:Bool   = false;
 
-    // ── KİLİTLİ DİLLER ──────────────────────────────────────────
     static final LOCKED_LANGS:Array<String> = ["mexico", "french", "azerbaycan"];
 
-    // ── Scroll sistemi ──────────────────────────────────────────
     var scrollOffset:Float     = 0;
     var targetScrollOffset:Float = 0;
 
-    // ── Sabitler ────────────────────────────────────────────────
     static final ITEM_H:Float    = 72;
     static final ITEM_GAP:Float  = 5;
     static final LIST_X:Float    = 24;
     static final LIST_Y:Float    = 86;
     static final LIST_W:Float    = 400;
     static final DIVIDER_X:Float = 448;
-    static final PREVIEW_CX:Float = 640; // sağ panel merkezi
+    static final PREVIEW_CX:Float = 640; 
 
-    // ── Gruplar ─────────────────────────────────────────────────
     var listItems:Array<LangItem> = [];
     var listGroup:FlxTypedGroup<LangItem>;
 
-    // ── Arka plan & ambians ─────────────────────────────────────
     var bg:FlxSprite;
     var bgTint:FlxSprite;
     var scanlines:FlxBackdrop;
@@ -39,7 +33,6 @@ class LanguageSubState extends MusicBeatSubstate
     var glowOrb2:FlxSprite;
     var ambientTimer:Float = 0;
 
-    // ── Üst bar ─────────────────────────────────────────────────
     var topBar:FlxSprite;
     var topBarLine:FlxSprite;
     var topBarGlow:FlxSprite;
@@ -50,11 +43,9 @@ class LanguageSubState extends MusicBeatSubstate
     var backBtnBorder:FlxSprite;
     var backBtnText:FlxText;
 
-    // ── Aktif öğe vurgu çizgisi ─────────────────────────────────
     var activeBar:FlxSprite;
     var activeGlow:FlxSprite;
 
-    // ── Sağ önizleme paneli ─────────────────────────────────────
     var previewPanel:FlxSprite;
     var previewPanelGlow:FlxSprite;
     var previewDivider:FlxSprite;
@@ -66,22 +57,18 @@ class LanguageSubState extends MusicBeatSubstate
     var previewTagBG:FlxSprite;
     var previewTagText:FlxText;
 
-    // ── Onay butonu ─────────────────────────────────────────────
     var confirmBG:FlxSprite;
     var confirmBGGlow:FlxSprite;
     var confirmBorder:FlxSprite;
     var confirmText:FlxText;
     var confirmKeyHint:FlxText;
 
-    // ── Alt hint bar ─────────────────────────────────────────────
     var hintBar:FlxSprite;
     var hintText:FlxText;
 
-    // ── Geçiş animasyonu ─────────────────────────────────────────
     var entranceTimer:Float = 0;
     var ready:Bool = false;
 
-    // ── Renk teması ──────────────────────────────────────────────
     static final COL_ACCENT:FlxColor  = 0xFF6333FF;
     static final COL_ACCENT2:FlxColor = 0xFF00C8FF;
     static final COL_BG:FlxColor      = 0xFF060612;
@@ -121,7 +108,6 @@ class LanguageSubState extends MusicBeatSubstate
         updatePreview(false);
         snapScroll();
 
-        // Giriş animasyonu — her şey başta ekranın dışında
         entranceSlideIn();
 
         try {
@@ -133,18 +119,10 @@ class LanguageSubState extends MusicBeatSubstate
         FlxG.camera.fade(COL_BG, 0.25, true);
     }
 
-    // ═══════════════════════════════════════════════
-    // KİLİT KONTROL FONKSİYONU
-    // ═══════════════════════════════════════════════
-    
     function isLangLocked(key:String):Bool
     {
         return LOCKED_LANGS.contains(key.toLowerCase());
     }
-
-    // ═══════════════════════════════════════════════
-    // ARKA PLAN
-    // ═══════════════════════════════════════════════
 
     function buildBackground():Void
     {
@@ -159,7 +137,6 @@ class LanguageSubState extends MusicBeatSubstate
         bgTint.alpha = 0.82;
         add(bgTint);
 
-        // Ambient ışık küreleri
         glowOrb1 = new FlxSprite(-120, -80).makeGraphic(500, 400, 0x00000000);
         glowOrb1.makeGraphic(500, 400, 0x00000000);
         _drawRadialGlow(glowOrb1, 500, 400, 0.18, COL_ACCENT);
@@ -171,7 +148,6 @@ class LanguageSubState extends MusicBeatSubstate
         glowOrb2.alpha = 0.5;
         add(glowOrb2);
 
-        // Scanlines (ince çizgi efekti)
         scanlines = new FlxBackdrop(null, Y, 0, 3);
         scanlines.makeGraphic(FlxG.width, 2, 0x08FFFFFF);
         scanlines.velocity.y = 0;
@@ -179,7 +155,6 @@ class LanguageSubState extends MusicBeatSubstate
         add(scanlines);
     }
 
-    // BitmapData'ya radial glow çizer (makeGraphic sonrası)
     function _drawRadialGlow(spr:FlxSprite, w:Int, h:Int, intensity:Float, col:FlxColor):Void
     {
         var bmp = new openfl.display.BitmapData(w, h, true, 0x00000000);
@@ -194,17 +169,14 @@ class LanguageSubState extends MusicBeatSubstate
             var dist = Math.sqrt(dx * dx + dy * dy);
             if (dist >= r) continue;
             var t = 1 - dist / r;
-            t = t * t; // quadratic falloff
+            t = t * t; 
+
             var a = Std.int(t * intensity * 255);
             if (a <= 0) continue;
             bmp.setPixel32(px, py, (a << 24) | (col.rgb));
         }
         spr.pixels = bmp;
     }
-
-    // ═══════════════════════════════════════════════
-    // ÜST BAR
-    // ═══════════════════════════════════════════════
 
     function buildTopBar():Void
     {
@@ -220,7 +192,6 @@ class LanguageSubState extends MusicBeatSubstate
         topBarLine.alpha = 0.4;
         add(topBarLine);
 
-        // Geri butonu (sol üst)
         backBtnBorder = new FlxSprite(LIST_X, 22).makeGraphic(36, 36, COL_ACCENT);
         backBtnBorder.alpha = 0.25;
         add(backBtnBorder);
@@ -232,7 +203,6 @@ class LanguageSubState extends MusicBeatSubstate
         backBtnText.setFormat(Paths.font("vcr.ttf"), 18, COL_MUTED, CENTER);
         add(backBtnText);
 
-        // Başlık
 		titleText = new FlxText(LIST_X + 52, 16, 260, "D İ L   S E Ç İ M İ", 13);
         titleText.setFormat(Paths.font("vcr.ttf"), 13, COL_MUTED, LEFT);
         add(titleText);
@@ -241,7 +211,6 @@ class LanguageSubState extends MusicBeatSubstate
         subTitle.setFormat(Paths.font("vcr.ttf"), 11, 0xFF444466, LEFT);
         add(subTitle);
 
-        // Sağ üst: dil sayısı badge
         var badgeW = 90;
         badgeBG = new FlxSprite(FlxG.width - badgeW - 24, 26).makeGraphic(badgeW, 26, COL_ACCENT);
         badgeBG.alpha = 0.15;
@@ -256,13 +225,9 @@ class LanguageSubState extends MusicBeatSubstate
         add(badgeText);
     }
 
-    // ═══════════════════════════════════════════════
-    // AYıRıCı ÇİZGİ
-    // ═══════════════════════════════════════════════
-
     function buildDivider():Void
     {
-        // Sol panel arka planı
+
         var leftBG = new FlxSprite(0, 78).makeGraphic(Std.int(DIVIDER_X), Std.int(FlxG.height - 78), COL_PANEL);
         leftBG.alpha = 0.5;
         add(leftBG);
@@ -271,7 +236,6 @@ class LanguageSubState extends MusicBeatSubstate
         previewDivider.alpha = 0.18;
         add(previewDivider);
 
-        // Aktif öğe sol çubuk göstergesi
         activeBar = new FlxSprite(LIST_X - 2, LIST_Y).makeGraphic(3, Std.int(ITEM_H - 10), COL_ACCENT);
         activeBar.alpha = 0.9;
         add(activeBar);
@@ -281,39 +245,30 @@ class LanguageSubState extends MusicBeatSubstate
         add(activeGlow);
     }
 
-    // ═══════════════════════════════════════════════
-    // ÖNİZLEME PANELİ (sağ)
-    // ═══════════════════════════════════════════════
-
     function buildPreviewPanel():Void
     {
         var panelX = Std.int(DIVIDER_X + 1);
         var panelW = Std.int(FlxG.width - DIVIDER_X - 1);
         var panelH = Std.int(FlxG.height - 112);
 
-        // Panel arka plan
         previewPanel = new FlxSprite(panelX, 78).makeGraphic(panelW, panelH, 0xFF080818);
         previewPanel.alpha = 0.75;
         add(previewPanel);
 
-        // Flag glow arkası
         previewFlagGlow = new FlxSprite(panelX + 20, 110).makeGraphic(panelW - 40, 180, COL_ACCENT);
         _drawRadialGlow(previewFlagGlow, panelW - 40, 180, 0.25, COL_ACCENT);
         previewFlagGlow.alpha = 0.6;
         add(previewFlagGlow);
 
-        // Flag görseli
         previewFlag = new FlxSprite(0, 0);
         previewFlag.antialiasing = ClientPrefs.data.antialiasing;
         previewFlag.makeGraphic(200, 130, COL_ITEM);
         add(previewFlag);
 
-        // Flag çerçeve
         previewFlagFrame = new FlxSprite(0, 0).makeGraphic(200, 2, COL_ACCENT);
         previewFlagFrame.alpha = 0.5;
         add(previewFlagFrame);
 
-        // Dil adı
         var nameY = Std.int(FlxG.height * 0.58);
         previewLangName = new FlxText(panelX, nameY, panelW, "", 30);
         previewLangName.setFormat(Paths.font("vcr.ttf"), 30, FlxColor.WHITE, CENTER,
@@ -325,7 +280,6 @@ class LanguageSubState extends MusicBeatSubstate
         previewNativeName.setFormat(Paths.font("vcr.ttf"), 13, COL_MUTED, CENTER);
         add(previewNativeName);
 
-        // Küçük etiket (ör. "LTR" / "RTL")
         var tagW = 80;
         var tagX = Std.int(panelX + (panelW - tagW) * 0.5);
         previewTagBG = new FlxSprite(tagX, nameY + 64).makeGraphic(tagW, 20, COL_ACCENT);
@@ -341,10 +295,6 @@ class LanguageSubState extends MusicBeatSubstate
         add(previewTagText);
     }
 
-    // ═══════════════════════════════════════════════
-    // ŞARKI LİSTESİ
-    // ═══════════════════════════════════════════════
-
     function buildListGroup():Void
     {
         listGroup = new FlxTypedGroup<LangItem>();
@@ -354,7 +304,7 @@ class LanguageSubState extends MusicBeatSubstate
         {
             var key = langKeys[i];
             var isLocked = isLangLocked(key);
-            
+
             var item = new LangItem(
                 LIST_X + 8,
                 LIST_Y + i * (ITEM_H + ITEM_GAP),
@@ -367,10 +317,6 @@ class LanguageSubState extends MusicBeatSubstate
             listGroup.add(item);
         }
     }
-
-    // ═══════════════════════════════════════════════
-    // ONAYLA BUTONU
-    // ═══════════════════════════════════════════════
 
     function buildConfirmButton():Void
     {
@@ -404,10 +350,6 @@ class LanguageSubState extends MusicBeatSubstate
         add(confirmKeyHint);
     }
 
-    // ═══════════════════════════════════════════════
-    // ALT HİNT BAR
-    // ═══════════════════════════════════════════════
-
     function buildHintBar():Void
     {
         hintBar = new FlxSprite(0, FlxG.height - 34).makeGraphic(FlxG.width, 34, COL_PANEL);
@@ -427,13 +369,9 @@ class LanguageSubState extends MusicBeatSubstate
         add(hintText);
     }
 
-    // ═══════════════════════════════════════════════
-    // GİRİŞ ANİMASYONU
-    // ═══════════════════════════════════════════════
-
     function entranceSlideIn():Void
     {
-        // Sol panel soldan gelsin
+
         for (item in listItems)
         {
             item.x = -LIST_W - 50;
@@ -442,7 +380,6 @@ class LanguageSubState extends MusicBeatSubstate
                 {ease: FlxEase.quartOut, startDelay: 0.05});
         }
 
-        // Üst bar yukarıdan
         topBar.y = -82;
         topBarGlow.y = -82;
         topBarLine.y = topBar.y + 76;
@@ -450,7 +387,6 @@ class LanguageSubState extends MusicBeatSubstate
         FlxTween.tween(topBarGlow, {y: 0}, 0.4, {ease: FlxEase.backOut});
         FlxTween.tween(topBarLine, {y: 76}, 0.4, {ease: FlxEase.backOut});
 
-        // Sağ panel sağdan
         var rightElements = [previewPanel, previewFlag, previewFlagGlow,
             previewFlagFrame, previewLangName, previewNativeName,
             previewTagBG, previewTagText, confirmBG, confirmBGGlow,
@@ -463,13 +399,8 @@ class LanguageSubState extends MusicBeatSubstate
             FlxTween.tween(el, {x: origX}, 0.5, {ease: FlxEase.quartOut, startDelay: 0.15});
         }
 
-        // 0.5s sonra input hazır
         new FlxTimer().start(0.5, function(_) ready = true);
     }
-
-    // ═══════════════════════════════════════════════
-    // ÖNİZLEME GÜNCELLE
-    // ═══════════════════════════════════════════════
 
     function updatePreview(animate:Bool = true):Void
     {
@@ -477,7 +408,6 @@ class LanguageSubState extends MusicBeatSubstate
         var displayName = Language.getLangDisplayName(key);
         var locked = isLangLocked(key);
 
-        // Flag yükle
         var flagPath = 'ultra/language/$key';
         try {
             previewFlag.loadGraphic(Paths.image(flagPath));
@@ -485,14 +415,12 @@ class LanguageSubState extends MusicBeatSubstate
             previewFlag.makeGraphic(200, 130, COL_ITEM_ACT);
         }
 
-        // Kilitli diller için opaklık düşür
         if (locked) {
             previewFlag.alpha = 0.4;
         } else {
             previewFlag.alpha = 1.0;
         }
 
-        // Flag boyutlandır — maks 200x130, oran koru
         var maxW:Float = Std.int(FlxG.width - DIVIDER_X - 42);
         var maxH:Float = 145.0;
         var scaleW = maxW / previewFlag.frameWidth;
@@ -504,24 +432,20 @@ class LanguageSubState extends MusicBeatSubstate
         );
         previewFlag.updateHitbox();
 
-        // Flag merkezi hizala
         var panelCX = DIVIDER_X + (FlxG.width - DIVIDER_X) * 0.5;
         previewFlag.x = panelCX - previewFlag.width * 0.5;
         previewFlag.y = 105;
 
-        // Flag alt çizgisi
         previewFlagFrame.x = previewFlag.x;
         previewFlagFrame.y = previewFlag.y + previewFlag.height;
         previewFlagFrame.makeGraphic(Std.int(previewFlag.width), 2, COL_ACCENT);
 
-        // Glow ayarla
         previewFlagGlow.x = panelCX - (FlxG.width - DIVIDER_X - 40) * 0.5;
         previewFlagGlow.y = 95;
 
         previewLangName.text = locked ? "🔒 " + displayName.toUpperCase() : displayName.toUpperCase();
         previewNativeName.text = key.toUpperCase() + "  ·  " + displayName;
 
-        // RTL dil kontrolü
         var rtlLangs = ["arabic", "hebrew", "persian", "urdu"];
         var isRTL = rtlLangs.contains(key.toLowerCase());
         previewTagText.text = locked ? "LOCKED" : (isRTL ? "RTL" : "LTR");
@@ -548,10 +472,6 @@ class LanguageSubState extends MusicBeatSubstate
         }
     }
 
-    // ═══════════════════════════════════════════════
-    // LİSTE GÜNCELLE
-    // ═══════════════════════════════════════════════
-
     function updateAllItems():Void
     {
         for (i in 0...listItems.length)
@@ -560,7 +480,7 @@ class LanguageSubState extends MusicBeatSubstate
 
     function snapScroll():Void
     {
-        // Seçili öğeyi ortada tut
+
         var visibleH = FlxG.height - 112 - 34;
         targetScrollOffset = curSelected * (ITEM_H + ITEM_GAP)
             - visibleH * 0.5 + ITEM_H * 0.5;
@@ -579,12 +499,11 @@ class LanguageSubState extends MusicBeatSubstate
             var item = listItems[i];
             var targetY = LIST_Y + i * (ITEM_H + ITEM_GAP) - scrollOffset;
             item.y = targetY;
-            // Görünürlük
+
             item.visible = (targetY + ITEM_H > LIST_Y - 10) && (targetY < FlxG.height - 34);
             item.alpha = item.visible ? 1 : 0;
         }
 
-        // Aktif bar pozisyonu
         if (curSelected < listItems.length)
         {
             var activeItem = listItems[curSelected];
@@ -593,29 +512,21 @@ class LanguageSubState extends MusicBeatSubstate
         }
     }
 
-    // ═══════════════════════════════════════════════
-    // UPDATE
-    // ═══════════════════════════════════════════════
-
     override function update(elapsed:Float)
     {
         super.update(elapsed);
 
         ambientTimer += elapsed;
 
-        // Ambient glow salınımı
         glowOrb1.alpha = 0.6 + Math.sin(ambientTimer * 0.7) * 0.15;
         glowOrb2.alpha = 0.4 + Math.sin(ambientTimer * 0.9 + 1) * 0.1;
         topBarGlow.alpha = 0.04 + Math.sin(ambientTimer * 1.2) * 0.015;
 
-        // Confirm buton nefes efekti
         confirmBGGlow.alpha = 0.15 + Math.sin(ambientTimer * 2) * 0.08;
 
-        // Aktif bar nefes efekti
         activeBar.alpha  = 0.8 + Math.sin(ambientTimer * 3) * 0.2;
         activeGlow.alpha = 0.06 + Math.sin(ambientTimer * 2) * 0.03;
 
-        // Smooth scroll
         scrollOffset = FlxMath.lerp(targetScrollOffset, scrollOffset, Math.exp(-elapsed * 12));
         if (Math.abs(scrollOffset - targetScrollOffset) < 0.5)
             scrollOffset = targetScrollOffset;
@@ -623,7 +534,6 @@ class LanguageSubState extends MusicBeatSubstate
 
         if (!ready) return;
 
-        // Input
         var mult:Int = FlxG.keys.pressed.SHIFT ? 5 : 1;
 
         if (controls.UI_UP_P)   changeSelected(-1 * mult);
@@ -632,7 +542,6 @@ class LanguageSubState extends MusicBeatSubstate
         if (FlxG.mouse.wheel != 0)
             changeSelected(-FlxG.mouse.wheel * 2);
 
-        // Mouse tıklama ile seç
         if (FlxG.mouse.justPressed)
         {
             for (i in 0...listItems.length)
@@ -694,8 +603,7 @@ class LanguageSubState extends MusicBeatSubstate
 	function confirmSelection():Void
 	{	
 		var key = langKeys[curSelected];
-		
-		// Kilitli dil kontrolü
+
 		if (isLangLocked(key))
 		{
 			FlxG.sound.play(Paths.sound('cancelMenu'), 0.7);
@@ -707,13 +615,13 @@ class LanguageSubState extends MusicBeatSubstate
 			);
 			return;
 		}
-		
+
 		FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
 
 		ClientPrefs.data.language = key;
 		ClientPrefs.saveSettings();
 		Language.reloadPhrases();
-		
+
 		AlertMsg.show(
 			Language.getPhrase('language_changed_title', 'Dil Değiştirildi!'),
 			Language.getPhrase('language_changed_msg', 'Diliniz değiştirildi.'),
@@ -735,19 +643,15 @@ class LanguageSubState extends MusicBeatSubstate
 		hintText.color = 0xFF00FF99;
 	}
 
-    // Çıkış animasyonu
     function slideOut(callback:Void->Void):Void
     {
         ready = false;
         FlxG.camera.fade(COL_BG, 0.25, false, callback);
     }
 
-    #end // TRANSLATIONS_ALLOWED
-}
+    #end 
 
-// ═══════════════════════════════════════════════
-// YARDIMCI SINIF: Liste Öğesi
-// ═══════════════════════════════════════════════
+}
 
 #if TRANSLATIONS_ALLOWED
 class LangItem extends FlxSpriteGroup
@@ -772,22 +676,18 @@ class LangItem extends FlxSpriteGroup
         langKey = key;
         isLocked = locked;
 
-        // Arka plan
         bg = new FlxSprite().makeGraphic(W, H, 0xFF111128);
         bg.alpha = locked ? 0.5 : 0.8;
         add(bg);
 
-        // Üst kenarlık (ince)
         bgBorder = new FlxSprite(0, 0).makeGraphic(W, 1, 0xFF3333AA);
         bgBorder.alpha = 0.2;
         add(bgBorder);
 
-        // Seçili sol çubuk (başta gizli)
         selectedLine = new FlxSprite(0, 8).makeGraphic(3, H - 16, 0xFF6333FF);
         selectedLine.alpha = 0;
         add(selectedLine);
 
-        // Flag/ikon
         icon = new FlxSprite(14, (H - 42) * 0.5);
         var iconPath = 'ultra/language/${key}_icon';
         try {
@@ -798,14 +698,12 @@ class LangItem extends FlxSpriteGroup
             icon.makeGraphic(42, 28, 0xFF222244);
         }
         icon.antialiasing = ClientPrefs.data.antialiasing;
-        
-        // Kilitli ise opaklık düşür
+
         if (locked) {
             icon.alpha = 0.4;
         }
         add(icon);
 
-        // Kilit ikonu
         if (locked)
         {
             lockIcon = new FlxSprite(14 + 42 - 14, (H - 42) * 0.5 + 28 - 14);
@@ -820,13 +718,11 @@ class LangItem extends FlxSpriteGroup
             add(lockIcon);
         }
 
-        // Dil adı
         label = new FlxText(70, 12, W - 80, displayName, 18);
         label.setFormat(Paths.font("vcr.ttf"), 18, locked ? 0xFF666677 : 0xFFCCCCEE, LEFT,
             FlxTextBorderStyle.NONE);
         add(label);
 
-        // Yerel ad
         nativeLabel = new FlxText(70, 35, W - 80, key.toLowerCase(), 11);
         nativeLabel.setFormat(Paths.font("vcr.ttf"), 11, locked ? 0xFF444455 : 0xFF555577, LEFT);
         add(nativeLabel);

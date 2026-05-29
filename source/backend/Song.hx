@@ -2,6 +2,7 @@ package backend;
 
 import haxe.Json;
 import lime.utils.Assets;
+import backend.VoiceSystem;
 
 import objects.Note;
 
@@ -14,6 +15,8 @@ typedef SwagSong =
 	var needsVoices:Bool;
 	var speed:Float;
 	var offset:Float;
+	
+	var ?voices:Dynamic;
 
 	var player1:String;
 	var player2:String;

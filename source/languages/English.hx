@@ -357,6 +357,15 @@ class English implements ILanguage
 		"news_3"     => "The weekly tournament has started! Don't forget to join.",
 		"news_4"     => "Don't forget to join our Discord server",
 		"news_5"     => "Let's Gooo!",
+		
+		// Music Player
+		"musicplayer_title"           => "MUSIC PLAYER",
+		"musicplayer_now_playing"     => "NOW PLAYING",
+		"musicplayer_loading"         => "Loading...",
+		"musicplayer_no_music"        => "No Music Found",
+		"musicplayer_file_not_found"  => "File Not Found",
+		"musicplayer_play_error"      => "Play Error",
+		"musicplayer_error"           => "Error",
 
 		// Top bar
 		"main_menu_logo"    => "PSYCH ENGINE ULTRA",

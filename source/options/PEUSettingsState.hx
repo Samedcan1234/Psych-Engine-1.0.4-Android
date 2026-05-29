@@ -67,6 +67,15 @@ class PEUSettingsState extends BaseOptionsMenu
 			'BOOL'
 		);
 		addOption(option);
+		
+		option = new Option(
+			Language.getPhrase('peu_menu_theme',      'Recording Quality:'),
+			Language.getPhrase('peu_menu_theme_desc', 'Kayıt kalitesini seçin.'),
+			'menuTheme',
+			STRING,
+			["More Performance", "Balanced", "Highest Quality"]
+		);
+		addOption(option);
 
 		super();
 	}
