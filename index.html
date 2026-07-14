@@ -572,12 +572,12 @@
         <!-- Stats -->
         <div class="flex items-center justify-center gap-x-8 mt-9 text-center">
           <div>
-            <div id="activePlayers" class="font-display text-3xl font-bold">142.8k</div>
+            <div id="activePlayers" class="font-display text-3xl font-bold">—</div>
             <div class="text-xs tracking-wider font-medium text-slate-400">REGISTERED PLAYERS</div>
           </div>
           <div>
-            <div id="totalDownloads" class="font-display text-3xl font-bold">1.4m</div>
-            <div class="text-xs tracking-wider font-medium text-slate-400">TOTAL DOWNLOADS</div>
+            <div id="totalDownloads" class="font-display text-3xl font-bold">—</div>
+            <div class="text-xs tracking-wider font-medium text-slate-400">GITHUB DOWNLOADS</div>
           </div>
         </div>
       </div>
@@ -2863,7 +2863,7 @@
         document.getElementById('activePlayers').textContent = '142k';
       }
       
-      let dl = 1400000;
+      let dl = 0;
       const local = parseInt(safeGet('fe_downloads') || '0');
       if (local > dl) dl = local;
       document.getElementById('totalDownloads').textContent = dl.toLocaleString();
@@ -3029,7 +3029,7 @@
     }
 
     // Increment total downloads counter (local + UI)
-    let downloadCount = parseInt(safeGet('fe_downloads') || '1400000');
+    let downloadCount = parseInt(safeGet('fe_downloads') || '0');
     function incrementDownloadCount() {
       downloadCount += 1;
       safeSet('fe_downloads', downloadCount);
@@ -3102,7 +3102,7 @@
       // Seed initial values for hero (in case fetch fails)
       setTimeout(() => {
         const ap = document.getElementById('activePlayers');
-        if (ap && ap.textContent === '—') ap.textContent = '142.8k';
+        if (ap && ap.textContent === '—') ap.textContent = '0';
 
         const td = document.getElementById('totalDownloads');
         if (td && td.textContent === '—') td.textContent = downloadCount.toLocaleString();
@@ -3172,5 +3172,6 @@
       fetchLB: fetchLB
     };
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1a333851f374db1',t:'MTc4Mzg5MjM3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1b20be29a353735',t:'MTc4NDA0ODAzNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1b21911acba18cd',t:'MTc4NDA0ODU3Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
