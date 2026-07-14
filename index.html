@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Security headers (CSP) - helps browser trust signals -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://ubhglndbbzidunjgnpqi.supabase.co https://i.postimg.cc https://www.google-analytics.com; frame-ancestors 'none'; form-action 'self';">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Further Engine — Online Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -314,8 +317,8 @@
           
           <div class="space-y-4 mt-6">
             <div>
-              <label class="block text-xs font-semibold text-slate-400 tracking-wider mb-1.5">USERNAME</label>
-              <input id="l-user" type="text" placeholder="your_username" 
+              <label class="block text-xs font-semibold text-slate-400 tracking-wider mb-1.5">EMAIL</label>
+              <input id="l-user" type="email" placeholder="you@example.com" autocomplete="email"
                      class="clean-input w-full bg-[#161622] border border-white/10 rounded-2xl px-4 py-[13px] text-sm placeholder:text-slate-500">
             </div>
             <div>
@@ -595,7 +598,7 @@
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         
         <!-- Download cards -->
-        <a href="https://www.mediafire.com/file/tgmf245rhicm1x3/Further-Engine-Beta.apk/file" target="_blank"
+        <a href="https://github.com/Samedcan1234/Psych-Engine-Ultra-Android/releases/latest" target="_blank" rel="noopener"
            class="modern-card px-4 py-4 rounded-3xl flex flex-col items-center text-center border border-emerald-400/40 ring-1 ring-emerald-400/30 group"
            onclick="incrementDownloadCount();">
           <div class="w-11 h-11 flex items-center justify-center mb-3">
@@ -1404,123 +1407,83 @@
       showToast('Signed out successfully.', 'ok');
     }
     
-    // ===================== LOGIN =====================
+    // ===================== LOGIN (email + password, no username enumeration) =====================
     async function doLogin() {
-      const user = document.getElementById('l-user').value.trim();
+      const email = document.getElementById('l-user').value.trim();
       const pass = document.getElementById('l-pass').value;
       const errEl = document.getElementById('l-err');
       const btn = document.getElementById('l-btn');
       
-      if (!user || !pass) {
+      if (!email || !pass) {
         errEl.textContent = 'Please fill in all fields.';
+        return;
+      }
+      if (!email.includes('@')) {
+        errEl.textContent = 'Please enter a valid email address.';
         return;
       }
       
       btn.disabled = true;
       btn.innerHTML = `<span class="flex items-center justify-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> SIGNING IN...</span>`;
       errEl.textContent = '';
+      errEl.style.color = '';
       
       try {
-        let email = null, avatarFilename = null, uid = null;
-        
-        // Try RPC for username to email
-        try {
-          const rpcRes = await fetch(`${SB_URL}/rest/v1/rpc/get_email_from_username`, {
-            method: 'POST',
-            headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username_input: user })
-          });
-          
-          if (rpcRes.ok) {
-            const rpcData = await rpcRes.json();
-            if (typeof rpcData === 'string' && rpcData.includes('@')) email = rpcData;
-          }
-        } catch(e) {}
-        
-        // Fallback to direct lookup
-        if (!email) {
-          const pr = await fetch(`${SB_URL}/rest/v1/profiles?select=email,avatar_url,id&username=eq.${encodeURIComponent(user)}`, {
-            headers: { 'apikey': SB_KEY, 'Accept': 'application/json' }
-          });
-          const pd = await pr.json();
-          
-          if (!Array.isArray(pd) || !pd.length || !pd[0].email) {
-            errEl.textContent = 'User not found. Please register first.';
-            btn.disabled = false;
-            btn.innerHTML = 'SIGN IN';
-            return;
-          }
-          
-          email = pd[0].email;
-          avatarFilename = pd[0].avatar_url || null;
-          uid = pd[0].id || null;
-        }
-        
-        // Auth login
+        // Direct Supabase Auth login with email+password (no email leaks)
         const lr = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
           method: 'POST',
           headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password: pass, grant_type: 'password' })
         });
-        
         const ld = await lr.json();
         
         if (!ld.access_token) {
-          errEl.textContent = ld.error_description || ld.msg || 'Invalid password.';
+          // Don't reveal whether the email exists or password is wrong
+          errEl.textContent = ld.error_description || ld.msg || 'Invalid email or password.';
           btn.disabled = false;
           btn.innerHTML = 'SIGN IN';
           return;
         }
         
-        uid = uid || ld.user?.id || '';
+        const uid = ld.user?.id || '';
+        const emailFromAuth = ld.user?.email || email;
         
-        // Fetch avatar if needed
-        if (!avatarFilename && uid) {
-          try {
-            const pr2 = await fetch(`${SB_URL}/rest/v1/profiles?select=avatar_url&id=eq.${uid}`, {
-              headers: { 
-                'apikey': SB_KEY, 
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + ld.access_token 
-              }
-            });
-            const pd2 = await pr2.json();
-            avatarFilename = pd2?.[0]?.avatar_url || null;
-          } catch(e){}
-        }
+        // Pull public profile (no email exposed) from public_profiles view using auth token
+        let avatarFilename = null, bannerFilename = null, username = emailFromAuth.split('@')[0], country = null;
+        try {
+          const pr = await fetch(`${SB_URL}/rest/v1/public_profiles?select=username,country,avatar_url,banner_url&id=eq.${uid}`, {
+            headers: {
+              'apikey': SB_KEY,
+              'Accept': 'application/json',
+              'Authorization': 'Bearer ' + ld.access_token
+            }
+          });
+          const pd = await pr.json();
+          if (Array.isArray(pd) && pd[0]) {
+            username = pd[0].username || username;
+            country = pd[0].country || null;
+            avatarFilename = pd[0].avatar_url || null;
+            bannerFilename = pd[0].banner_url || null;
+          }
+        } catch(e){}
         
         const avatarUrl = (avatarFilename && uid) ? getAvatarUrl(uid, avatarFilename) : null;
+        const bannerUrl = (bannerFilename && uid) ? getBannerUrl(uid, bannerFilename) : null;
         
         // Save state
         safeSet('peu_token', ld.access_token);
         safeSet('peu_refresh', ld.refresh_token || '');
-        safeSet('peu_user', user);
-        safeSet('peu_email', email);
+        safeSet('peu_user', username);
+        safeSet('peu_email', emailFromAuth);
         safeSet('peu_uid', uid);
+        safeSet('peu_country', country || '');
         
-        if (avatarUrl) safeSet('peu_avatar', avatarUrl);
-        else safeRemove('peu_avatar');
-
-        // Load banner if exists
-        let bannerUrl = null;
-        try {
-          const pr3 = await fetch(`${SB_URL}/rest/v1/profiles?select=banner_url&id=eq.${uid}`, {
-            headers: { 
-              'apikey': SB_KEY, 
-              'Accept': 'application/json',
-              'Authorization': 'Bearer ' + ld.access_token 
-            }
-          });
-          const pd3 = await pr3.json();
-          if (pd3?.[0]?.banner_url) {
-            bannerUrl = getBannerUrl(uid, pd3[0].banner_url);
-            safeSet('peu_banner', bannerUrl);
-          }
-        } catch(e){}
+        if (avatarUrl) safeSet('peu_avatar', avatarUrl); else safeRemove('peu_avatar');
+        if (bannerUrl) safeSet('peu_banner', bannerUrl); else safeRemove('peu_banner');
         
-        setLoggedIn(user, email, avatarUrl, bannerUrl);
+        setLoggedIn(username, emailFromAuth, avatarUrl, bannerUrl);
         closeModal();
-        showToast(`Welcome back, ${user}!`, 'ok');
+        showToast(`Welcome back, ${username}!`, 'ok');
         
       } catch(e) {
         errEl.textContent = 'Connection error. Please try again.';
@@ -1533,22 +1496,25 @@
     
     // ===================== FORGOT PASSWORD =====================
     async function doForgot() {
-      const user = document.getElementById('l-user').value.trim();
+      const email = document.getElementById('l-user').value.trim();
       const errEl = document.getElementById('l-err');
       
-      if (!user.includes('@')) {
-        errEl.textContent = 'Please enter your email address.';
+      if (!email.includes('@')) {
+        errEl.style.color = '';
+        errEl.textContent = 'Please enter your email address in the EMAIL field above, then click Forgot password.';
         return;
       }
       
-      await fetch(`${SB_URL}/auth/v1/recover`, {
-        method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user })
-      });
+      try {
+        await fetch(`${SB_URL}/auth/v1/recover`, {
+          method: 'POST',
+          headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+      } catch(e) {}
       
       errEl.style.color = '#4ade80';
-      errEl.textContent = 'Password reset link sent to your email.';
+      errEl.textContent = 'If an account exists, a password reset link has been sent to your email.';
     }
     
     // ===================== REGISTER =====================
@@ -1565,7 +1531,7 @@
       okEl.textContent = '';
       
       if (user.length < 4) { errEl.textContent = 'Username must be at least 4 characters.'; return; }
-      if (!/^[a-zA-Z0-9_]+$/.test(user)) { errEl.textContent = 'Only letters, numbers, and underscores allowed.'; return; }
+      if (!/^[a-zA-Z0-9_]+$/.test(user) || user.includes('@')) { errEl.textContent = 'Only letters, numbers, and underscores allowed (no @).'; return; }
       if (!email.includes('@')) { errEl.textContent = 'Please enter a valid email.'; return; }
       if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
       if (BADWORDS.some(w => user.toLowerCase().includes(w))) { errEl.textContent = 'Username contains inappropriate words.'; return; }
@@ -1722,7 +1688,7 @@
       if (bannerUrl) {
         preview.innerHTML = `
           <img src="${bannerUrl}" style="width:100%;height:100%;object-fit:cover" 
-               onerror="this.outerHTML='<div class=\\'flex items-center justify-center h-full text-xs text-slate-500\\'>Banner yüklenemedi</div>'">
+               onerror="this.outerHTML='<div class=\\'flex items-center justify-center h-full text-xs text-slate-500\\'>Banner failed to load</div>'">
           <div class="absolute inset-0 bg-gradient-to-b from-black/10 to-black/30"></div>
           <div class="absolute bottom-1 right-1 text-[9px] px-1.5 py-px bg-black/60 rounded text-white">Current</div>
         `;
@@ -2295,7 +2261,7 @@
       } catch(e) {
         let msg = e.message || 'Unknown error';
         if (msg.toLowerCase().includes('row-level security') || msg.includes('violates row-level')) {
-          msg = 'Malesef Şuanlık Çalışmıyor, değilmi?';
+          msg = 'Permission denied. Make sure you only edit your own profile.';
         }
         setProfileMsg('Error: ' + msg, true);
         console.error('saveProfile error:', e);
@@ -2883,9 +2849,9 @@
         }
       } catch(e) {}
       
-      // Fallback
+      // Fallback: use public_profiles view (RLS-safe, no email)
       try {
-        const r = await fetch(`${SB_URL}/rest/v1/profiles?select=id`, {
+        const r = await fetch(`${SB_URL}/rest/v1/public_profiles?select=id`, {
           headers: { 'apikey': SB_KEY, 'Accept': 'application/json', 'Prefer': 'count=exact', 'Range': '0-0' }
         });
         
@@ -3204,5 +3170,5 @@
       fetchLB: fetchLB
     };
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1a333851f374db1',t:'MTc4Mzg5MjM3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1a333851f374db1',t:'MTc4Mzg5MjM3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1b1f20e29805d7d',t:'MTc4NDA0Njk3OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
